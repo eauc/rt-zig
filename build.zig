@@ -34,9 +34,9 @@ pub fn build(b: *std.Build) void {
 
     const examples = [_]Example{
         .{
-            .name = "example1",
-            .desc = "Example 1",
-            .path = "examples/example1.zig",
+            .name = "ray_sphere",
+            .desc = "Example: ray sphere intersection",
+            .path = "examples/ray_sphere.zig",
         },
     };
 

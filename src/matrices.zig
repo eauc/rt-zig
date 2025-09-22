@@ -53,7 +53,7 @@ fn expectEqualS(comptime S: usize, a: MatrixS(S), b: MatrixS(S)) !void {
     }
 }
 
-fn expectEqual(a: Matrix, b: Matrix) !void {
+pub fn expectEqual(a: Matrix, b: Matrix) !void {
     try expectEqualS(4, a, b);
 }
 

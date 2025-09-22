@@ -1,9 +1,12 @@
 const floats = @import("floats.zig");
 const Float = floats.Float;
+const matrices = @import("matrices.zig");
+const Matrix = matrices.Matrix;
+const transformations = @import("transformations.zig");
 const tuples = @import("tuples.zig");
 const Tuple = tuples.Tuple;
 
-const Ray = struct {
+pub const Ray = struct {
     origin: Tuple,
     direction: Tuple,
 };
@@ -34,4 +37,27 @@ test position {
     try tuples.expectEqual(tuples.point(3, 3, 4), position(r, 1));
     try tuples.expectEqual(tuples.point(1, 3, 4), position(r, -1));
     try tuples.expectEqual(tuples.point(4.5, 3, 4), position(r, 2.5));
+}
+
+pub fn transform(r: Ray, transformation: Matrix) Ray {
+    return ray(
+        matrices.mult(transformation, r.origin),
+        matrices.mult(transformation, r.direction),
+    );
+}
+
+test "Translating a ray" {
+    const r = ray(tuples.point(1, 2, 3), tuples.vector(0, 1, 0));
+    const m = transformations.translation(3, 4, 5);
+    const r2 = transform(r, m);
+    try tuples.expectEqual(tuples.point(4, 6, 8), r2.origin);
+    try tuples.expectEqual(tuples.vector(0, 1, 0), r2.direction);
+}
+
+test "Scaling a ray" {
+    const r = ray(tuples.point(1, 2, 3), tuples.vector(0, 1, 0));
+    const m = transformations.scaling(2, 3, 4);
+    const r2 = transform(r, m);
+    try tuples.expectEqual(tuples.point(2, 6, 12), r2.origin);
+    try tuples.expectEqual(tuples.vector(0, 3, 0), r2.direction);
 }
