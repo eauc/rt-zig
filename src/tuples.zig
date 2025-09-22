@@ -2,13 +2,17 @@ const std = @import("std");
 const floats = @import("floats.zig");
 const Float = floats.Float;
 
-const Tuple = [4]Float;
+pub const Tuple = [4]Float;
 
-fn init(new_x: Float, new_y: Float, new_z: Float, new_w: Float) Tuple {
+pub fn init(new_x: Float, new_y: Float, new_z: Float, new_w: Float) Tuple {
     return [4]Float{ new_x, new_y, new_z, new_w };
 }
 
-fn expectEqual(a: Tuple, b: Tuple) !void {
+fn equal(a: Tuple, b: Tuple) bool {
+    return floats.equal(a[0], b[0]) and floats.equal(a[1], b[1]) and floats.equal(a[2], b[2]) and floats.equal(a[3], b[3]);
+}
+
+pub fn expectEqual(a: Tuple, b: Tuple) !void {
     try floats.expectEqual(a[0], b[0]);
     try floats.expectEqual(a[1], b[1]);
     try floats.expectEqual(a[2], b[2]);
