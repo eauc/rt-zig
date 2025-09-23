@@ -38,6 +38,11 @@ pub fn build(b: *std.Build) void {
             .desc = "Example: ray sphere intersection",
             .path = "examples/ray_sphere.zig",
         },
+        .{
+            .name = "light_shading",
+            .desc = "Example: light and shading",
+            .path = "examples/light_shading.zig",
+        },
     };
 
     for (examples) |example| {

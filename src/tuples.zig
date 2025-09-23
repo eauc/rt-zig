@@ -53,6 +53,11 @@ pub fn vector(new_x: Float, new_y: Float, new_z: Float) Tuple {
     return init(new_x, new_y, new_z, 0.0);
 }
 
+/// Forces a tuple to be a vector
+pub fn to_vector(tuple: *Tuple) void {
+    tuple.*[3] = 0.0;
+}
+
 test vector {
     const tuple = vector(4.3, -4.2, 3.1);
     try std.testing.expectEqual(4.3, x(tuple));
@@ -184,4 +189,23 @@ test cross {
     const b = vector(2.0, 3.0, 4.0);
     try expectEqual(vector(-1.0, 2.0, -1.0), cross(a, b));
     try expectEqual(vector(1.0, -2.0, 1.0), cross(b, a));
+}
+
+/// Reflects a vector against a surface's normal
+pub fn reflect(in: Tuple, normal: Tuple) Tuple {
+    return sub(in, muls(normal, 2.0 * dot(in, normal)));
+}
+
+test "Reflecting a vector approaching at 45°" {
+    const v = vector(1.0, -1.0, 0.0);
+    const n = vector(0.0, 1.0, 0.0);
+    const r = reflect(v, n);
+    try expectEqual(vector(1.0, 1.0, 0.0), r);
+}
+
+test "Reflecting a vector off a slanted surface" {
+    const v = vector(0.0, -1.0, 0.0);
+    const n = vector(floats.sqrt2 / 2, floats.sqrt2 / 2, 0.0);
+    const r = reflect(v, n);
+    try expectEqual(vector(1.0, 0.0, 0.0), r);
 }
