@@ -1,38 +1,31 @@
 const std = @import("std");
 const floats = @import("floats.zig");
 const Float = floats.Float;
+const Tuple = @This();
 
-pub const Tuple = [4]Float;
+x: Float,
+y: Float,
+z: Float,
+w: Float,
 
 pub fn init(new_x: Float, new_y: Float, new_z: Float, new_w: Float) Tuple {
-    return [4]Float{ new_x, new_y, new_z, new_w };
+    return .{
+        .x = new_x,
+        .y = new_y,
+        .z = new_z,
+        .w = new_w,
+    };
 }
 
-fn equal(a: Tuple, b: Tuple) bool {
-    return floats.equal(a[0], b[0]) and floats.equal(a[1], b[1]) and floats.equal(a[2], b[2]) and floats.equal(a[3], b[3]);
+fn equal(self: Tuple, b: Tuple) bool {
+    return floats.equal(self[0], b[0]) and floats.equal(self[1], b[1]) and floats.equal(self[2], b[2]) and floats.equal(self[3], b[3]);
 }
 
-pub fn expectEqual(a: Tuple, b: Tuple) !void {
-    try floats.expectEqual(a[0], b[0]);
-    try floats.expectEqual(a[1], b[1]);
-    try floats.expectEqual(a[2], b[2]);
-    try floats.expectEqual(a[3], b[3]);
-}
-
-pub fn x(tuple: Tuple) Float {
-    return tuple[0];
-}
-
-pub fn y(tuple: Tuple) Float {
-    return tuple[1];
-}
-
-pub fn z(tuple: Tuple) Float {
-    return tuple[2];
-}
-
-pub fn w(tuple: Tuple) Float {
-    return tuple[3];
+pub fn expectEqual(expected: Tuple, actual: Tuple) !void {
+    try floats.expectEqual(expected.x, actual.x);
+    try floats.expectEqual(expected.y, actual.y);
+    try floats.expectEqual(expected.z, actual.z);
+    try floats.expectEqual(expected.w, actual.w);
 }
 
 /// A tuple with w=1.0 is a point
@@ -42,10 +35,10 @@ pub fn point(new_x: Float, new_y: Float, new_z: Float) Tuple {
 
 test point {
     const tuple = point(4.3, -4.2, 3.1);
-    try std.testing.expectEqual(4.3, x(tuple));
-    try std.testing.expectEqual(-4.2, y(tuple));
-    try std.testing.expectEqual(3.1, z(tuple));
-    try std.testing.expectEqual(1.0, w(tuple));
+    try std.testing.expectEqual(4.3, tuple.x);
+    try std.testing.expectEqual(-4.2, tuple.y);
+    try std.testing.expectEqual(3.1, tuple.z);
+    try std.testing.expectEqual(1.0, tuple.w);
 }
 
 /// A tuple with w=0.0 is a vector
@@ -54,21 +47,21 @@ pub fn vector(new_x: Float, new_y: Float, new_z: Float) Tuple {
 }
 
 /// Forces a tuple to be a vector
-pub fn to_vector(tuple: *Tuple) void {
-    tuple.*[3] = 0.0;
+pub fn to_vector(self: *Tuple) void {
+    self.w = 0.0;
 }
 
 test vector {
     const tuple = vector(4.3, -4.2, 3.1);
-    try std.testing.expectEqual(4.3, x(tuple));
-    try std.testing.expectEqual(-4.2, y(tuple));
-    try std.testing.expectEqual(3.1, z(tuple));
-    try std.testing.expectEqual(0.0, w(tuple));
+    try std.testing.expectEqual(4.3, tuple.x);
+    try std.testing.expectEqual(-4.2, tuple.y);
+    try std.testing.expectEqual(3.1, tuple.z);
+    try std.testing.expectEqual(0.0, tuple.w);
 }
 
 /// Performs vector addition
-pub fn add(a: Tuple, b: Tuple) Tuple {
-    return init(a[0] + b[0], a[1] + b[1], a[2] + b[2], a[3] + b[3]);
+pub fn add(self: Tuple, b: Tuple) Tuple {
+    return init(self.x + b.x, self.y + b.y, self.z + b.z, self.w + b.w);
 }
 
 test add {
@@ -79,8 +72,8 @@ test add {
 }
 
 /// Performs vector subtraction
-pub fn sub(a: Tuple, b: Tuple) Tuple {
-    return init(a[0] - b[0], a[1] - b[1], a[2] - b[2], a[3] - b[3]);
+pub fn sub(self: Tuple, b: Tuple) Tuple {
+    return init(self.x - b.x, self.y - b.y, self.z - b.z, self.w - b.w);
 }
 
 test sub {
@@ -103,8 +96,8 @@ test "Subtracting two vectors" {
 }
 
 /// Negates a tuple
-pub fn neg(tuple: Tuple) Tuple {
-    return init(-tuple[0], -tuple[1], -tuple[2], -tuple[3]);
+pub fn neg(self: Tuple) Tuple {
+    return init(-self.x, -self.y, -self.z, -self.w);
 }
 
 test neg {
@@ -113,8 +106,8 @@ test neg {
 }
 
 /// Multiplies a tuple by a scalar
-pub fn muls(tuple: Tuple, scalar: Float) Tuple {
-    return init(tuple[0] * scalar, tuple[1] * scalar, tuple[2] * scalar, tuple[3] * scalar);
+pub fn muls(self: Tuple, scalar: Float) Tuple {
+    return init(self.x * scalar, self.y * scalar, self.z * scalar, self.w * scalar);
 }
 
 test muls {
@@ -128,8 +121,8 @@ test "Multiplying a tuple by a fraction" {
 }
 
 /// Divides a tuple by a scalar
-pub fn divs(tuple: Tuple, scalar: Float) Tuple {
-    return init(tuple[0] / scalar, tuple[1] / scalar, tuple[2] / scalar, tuple[3] / scalar);
+pub fn divs(self: Tuple, scalar: Float) Tuple {
+    return init(self.x / scalar, self.y / scalar, self.z / scalar, self.w / scalar);
 }
 
 test divs {
@@ -138,8 +131,8 @@ test divs {
 }
 
 /// Computes the magnitude of a vector
-pub fn magnitude(tuple: Tuple) Float {
-    return @sqrt(tuple[0] * tuple[0] + tuple[1] * tuple[1] + tuple[2] * tuple[2] + tuple[3] * tuple[3]);
+pub fn magnitude(self: Tuple) Float {
+    return @sqrt(self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w);
 }
 
 test magnitude {
@@ -156,8 +149,8 @@ test magnitude {
 }
 
 /// Normalizes a tuple
-pub fn normalize(tuple: Tuple) Tuple {
-    return divs(tuple, magnitude(tuple));
+pub fn normalize(self: Tuple) Tuple {
+    return self.divs(magnitude(self));
 }
 
 test normalize {
@@ -169,8 +162,8 @@ test normalize {
 }
 
 /// Computes the dot product of two vectors
-pub fn dot(a: Tuple, b: Tuple) Float {
-    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+pub fn dot(self: Tuple, b: Tuple) Float {
+    return self.x * b.x + self.y * b.y + self.z * b.z + self.w * b.w;
 }
 
 test dot {
@@ -180,8 +173,12 @@ test dot {
 }
 
 /// Computes the cross product of two vectors
-pub fn cross(a: Tuple, b: Tuple) Tuple {
-    return vector(a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]);
+pub fn cross(self: Tuple, b: Tuple) Tuple {
+    return vector(
+        self.y * b.z - self.z * b.y,
+        self.z * b.x - self.x * b.z,
+        self.x * b.y - self.y * b.x,
+    );
 }
 
 test cross {
@@ -192,8 +189,8 @@ test cross {
 }
 
 /// Reflects a vector against a surface's normal
-pub fn reflect(in: Tuple, normal: Tuple) Tuple {
-    return sub(in, muls(normal, 2.0 * dot(in, normal)));
+pub fn reflect(self: Tuple, normal: Tuple) Tuple {
+    return self.sub(normal.muls(2.0 * self.dot(normal)));
 }
 
 test "Reflecting a vector approaching at 45°" {

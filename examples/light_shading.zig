@@ -6,17 +6,17 @@ pub fn main() !void {
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    const ray_origin = rt_zig.tuples.point(0, 0, -5);
+    const ray_origin = rt_zig.Tuple.point(0, 0, -5);
     const wall_z: rt_zig.floats.Float = 10.0;
     const wall_size: rt_zig.floats.Float = 7.0;
     const canvas_pixels = 400;
     const canvas_pixel_f: rt_zig.floats.Float = @floatFromInt(canvas_pixels);
     const pixel_size = wall_size / canvas_pixel_f;
     const half = wall_size / 2.0;
-    var canvas = rt_zig.canvas.canvas(allocator, canvas_pixels, canvas_pixels);
-    var shape = rt_zig.spheres.sphere();
-    shape.material.color = rt_zig.colors.color(1, 0.2, 1);
-    const light = rt_zig.lights.point_light(rt_zig.tuples.point(-10, 10, -10), rt_zig.colors.WHITE);
+    var canvas = rt_zig.Canvas.init(allocator, canvas_pixels, canvas_pixels);
+    var shape = rt_zig.Sphere.init();
+    shape.material.color = rt_zig.Color.init(1, 0.2, 1);
+    const light = rt_zig.PointLight.init(rt_zig.Tuple.point(-10, 10, -10), rt_zig.Color.WHITE);
 
     const progress = std.Progress.start(.{
         .root_name = "rendering",
@@ -31,24 +31,24 @@ pub fn main() !void {
         for (0..canvas_pixels) |x| {
             const x_f: rt_zig.floats.Float = @floatFromInt(x);
             const world_x = -half + pixel_size * x_f;
-            const position = rt_zig.tuples.point(world_x, world_y, wall_z);
-            const direction = rt_zig.tuples.sub(position, ray_origin);
-            const r = rt_zig.rays.ray(ray_origin, rt_zig.tuples.normalize(direction));
+            const position = rt_zig.Tuple.point(world_x, world_y, wall_z);
+            const direction = rt_zig.Tuple.sub(position, ray_origin);
+            const r = rt_zig.Ray.init(ray_origin, direction.normalize());
 
-            var buf = [_]rt_zig.intersections.Intersection{undefined} ** 10;
-            const xs = rt_zig.spheres.intersect(&shape, r, &buf);
-            if (rt_zig.intersections.hit(xs)) |hit| {
-                const point = rt_zig.rays.position(r, hit.t);
-                const normal = rt_zig.spheres.normal_at(shape, point);
-                const eyev = rt_zig.tuples.neg(r.direction);
-                const color = rt_zig.materials.lighting(shape.material, light, point, eyev, normal);
-                rt_zig.canvas.write_pixel(&canvas, x, y, color);
+            var buf = [_]rt_zig.Intersection{undefined} ** 10;
+            const xs = shape.intersect(r, &buf);
+            if (rt_zig.Intersection.hit(xs)) |hit| {
+                const point = r.position(hit.t);
+                const normal = shape.normal_at(point);
+                const eyev = r.direction.neg();
+                const color = shape.material.lighting(light, point, eyev, normal);
+                canvas.write_pixel(x, y, color);
             }
             progress.completeOne();
         }
     }
 
-    const ppm = rt_zig.canvas.to_ppm(canvas, allocator);
+    const ppm = canvas.to_ppm(allocator);
     try std.fs.cwd().writeFile(.{
         .sub_path = "examples/light_shading.ppm",
         .data = ppm,
