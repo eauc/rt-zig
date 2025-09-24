@@ -41,7 +41,7 @@ pub fn main() !void {
                 const point = r.position(hit.t);
                 const normal = shape.normal_at(point);
                 const eyev = r.direction.neg();
-                const color = shape.material.lighting(light, point, eyev, normal);
+                const color = shape.material.lighting(light, point, eyev, normal, false);
                 canvas.write_pixel(x, y, color);
             }
             progress.completeOne();

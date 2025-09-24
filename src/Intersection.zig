@@ -4,6 +4,7 @@ const Float = floats.Float;
 const Intersection = @This();
 const Ray = @import("Ray.zig");
 const Sphere = @import("Sphere.zig");
+const transformations = @import("transformations.zig");
 const Tuple = @import("Tuple.zig");
 
 t: Float,
@@ -87,6 +88,7 @@ test hit {
 pub const Computations = struct {
     inside: bool,
     point: Tuple,
+    over_point: Tuple,
     eyev: Tuple,
     normalv: Tuple,
 };
@@ -99,6 +101,7 @@ pub fn prepare_computations(i: Intersection, r: Ray) Computations {
     var comps = Computations{
         .inside = false,
         .point = point,
+        .over_point = point,
         .eyev = eyev,
         .normalv = normalv,
     };
@@ -106,6 +109,7 @@ pub fn prepare_computations(i: Intersection, r: Ray) Computations {
         comps.inside = true;
         comps.normalv = comps.normalv.neg();
     }
+    comps.over_point = comps.point.add(comps.normalv.muls(floats.EPSILON * 10));
     return comps;
 }
 
@@ -136,4 +140,14 @@ test "The hit, when an intersection occurs on the inside" {
     try Tuple.expectEqual(Tuple.point(0, 0, 1), comps.point);
     try Tuple.expectEqual(Tuple.vector(0, 0, -1), comps.eyev);
     try Tuple.expectEqual(Tuple.vector(0, 0, -1), comps.normalv);
+}
+
+test "The hit should offset the point" {
+    const r = Ray.init(Tuple.point(0, 0, -5), Tuple.vector(0, 0, 1));
+    var shape = Sphere.init();
+    shape.transform = transformations.translation(0, 0, 1);
+    const i = init(5, &shape);
+    const comps = prepare_computations(i, r);
+    try std.testing.expect(comps.over_point.z < -floats.EPSILON / 2);
+    try std.testing.expect(comps.point.z > comps.over_point.z);
 }

@@ -109,7 +109,8 @@ test intersect {
 
 /// Shade an intersection
 pub fn shade_hit(w: World, hit: Intersection, comps: Intersection.Computations) Color {
-    return hit.object.material.lighting(w.lights.items[0], comps.point, comps.eyev, comps.normalv);
+    const in_shadow = w.is_shadowed(comps.over_point);
+    return hit.object.material.lighting(w.lights.items[0], comps.over_point, comps.eyev, comps.normalv, in_shadow);
 }
 
 test shade_hit {
@@ -134,7 +135,24 @@ test "Shading an intersection from the inside" {
     const i = Intersection.init(0.5, shape);
     const comps = i.prepare_computations(r);
     const c = shade_hit(w, i, comps);
-    try Color.expectEqual(Color.init(0.90498, 0.90498, 0.90498), c);
+    try Color.expectEqual(Color.init(0.90495, 0.90495, 0.90495), c);
+}
+
+test "Shading when the intersection is in shadow" {
+    var w = default(std.testing.allocator);
+    defer w.deinit();
+    w.lights.items[0] = PointLight.init(Tuple.point(0, 0, -10), Color.WHITE);
+    const s1 = Sphere.init();
+    w.add_object(s1);
+    var s2 = Sphere.init();
+    s2.transform = transformations.translation(0, 0, 10);
+    w.add_object(s2);
+
+    const r = Ray.init(Tuple.point(0, 0, 5), Tuple.vector(0, 0, 1));
+    const i = Intersection.init(4, &s2);
+    const comps = i.prepare_computations(r);
+    const c = shade_hit(w, i, comps);
+    try Color.expectEqual(Color.init(0.1, 0.1, 0.1), c);
 }
 
 /// Compute the color of a ray
@@ -175,4 +193,49 @@ test "The color with an intersection behind the ray" {
     const r = Ray.init(Tuple.point(0, 0, 0.75), Tuple.vector(0, 0, -1));
     const c = color_at(w, r);
     try Color.expectEqual(w.objects.items[1].material.color, c);
+}
+
+fn is_shadowed(self: World, point: Tuple) bool {
+    var buf = [_]Intersection{undefined} ** 100;
+    const v = self.lights.items[0].position.sub(point);
+    const distance = v.magnitude();
+    const direction = v.normalize();
+    const ray = Ray.init(point, direction);
+    const xs = self.intersect(ray, &buf);
+    if (Intersection.hit(xs)) |hit| {
+        return hit.t < distance;
+    }
+    return false;
+}
+
+test "There is no shadow when nothing is collinear with point and light" {
+    var w = default(std.testing.allocator);
+    defer w.deinit();
+
+    const p = Tuple.point(0, 10, 0);
+    try std.testing.expectEqual(false, w.is_shadowed(p));
+}
+
+test "The shadow when an object is between the point and the light" {
+    var w = default(std.testing.allocator);
+    defer w.deinit();
+
+    const p = Tuple.point(10, -10, 10);
+    try std.testing.expectEqual(true, w.is_shadowed(p));
+}
+
+test "There is no shadow when an object is behind the light" {
+    var w = default(std.testing.allocator);
+    defer w.deinit();
+
+    const p = Tuple.point(-20, 20, -20);
+    try std.testing.expectEqual(false, w.is_shadowed(p));
+}
+
+test "There is no shadow when an object is behind the point" {
+    var w = default(std.testing.allocator);
+    defer w.deinit();
+
+    const p = Tuple.point(-2, 2, -2);
+    try std.testing.expectEqual(false, w.is_shadowed(p));
 }
