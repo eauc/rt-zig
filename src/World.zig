@@ -3,20 +3,20 @@ const Color = @import("Color.zig");
 const Intersection = @import("Intersection.zig");
 const PointLight = @import("Light.zig");
 const Material = @import("Material.zig");
+const Object = @import("Object.zig");
 const Ray = @import("Ray.zig");
-const Sphere = @import("Sphere.zig");
 const transformations = @import("transformations.zig");
 const Tuple = @import("Tuple.zig");
 const World = @This();
 
 allocator: std.mem.Allocator,
-objects: std.ArrayList(Sphere),
+objects: std.ArrayList(Object),
 lights: std.ArrayList(PointLight),
 
 pub fn init(allocator: std.mem.Allocator) World {
     return World{
         .allocator = allocator,
-        .objects = std.ArrayList(Sphere){},
+        .objects = std.ArrayList(Object){},
         .lights = std.ArrayList(PointLight){},
     };
 }
@@ -26,8 +26,8 @@ pub fn deinit(self: *World) void {
     self.lights.deinit(self.allocator);
 }
 
-pub fn add_object(self: *World, s: Sphere) void {
-    self.objects.append(self.allocator, s) catch unreachable;
+pub fn add_object(self: *World, o: Object) void {
+    self.objects.append(self.allocator, o) catch unreachable;
 }
 
 pub fn add_light(self: *World, l: PointLight) void {
@@ -48,11 +48,11 @@ pub fn default(allocator: std.mem.Allocator) World {
     var w = init(allocator);
 
     const light = PointLight.init(Tuple.point(-10, 10, -10), Color.WHITE);
-    var s1 = Sphere.init();
+    var s1 = Object.sphere();
     s1.material.color = Color.init(0.8, 1.0, 0.6);
     s1.material.diffuse = 0.7;
     s1.material.specular = 0.2;
-    var s2 = Sphere.init();
+    var s2 = Object.sphere();
     s2.transform = transformations.scaling(0.5, 0.5, 0.5);
 
     add_object(&w, s1);
@@ -66,11 +66,11 @@ test default {
     const allocator = std.testing.allocator;
 
     const light = PointLight.init(Tuple.point(-10, 10, -10), Color.WHITE);
-    var s1 = Sphere.init();
+    var s1 = Object.sphere();
     s1.material.color = Color.init(0.8, 1.0, 0.6);
     s1.material.diffuse = 0.7;
     s1.material.specular = 0.2;
-    var s2 = Sphere.init();
+    var s2 = Object.sphere();
     s2.transform = transformations.scaling(0.5, 0.5, 0.5);
 
     var w = default(allocator);
@@ -142,9 +142,9 @@ test "Shading when the intersection is in shadow" {
     var w = default(std.testing.allocator);
     defer w.deinit();
     w.lights.items[0] = PointLight.init(Tuple.point(0, 0, -10), Color.WHITE);
-    const s1 = Sphere.init();
+    const s1 = Object.sphere();
     w.add_object(s1);
-    var s2 = Sphere.init();
+    var s2 = Object.sphere();
     s2.transform = transformations.translation(0, 0, 10);
     w.add_object(s2);
 
@@ -156,12 +156,13 @@ test "Shading when the intersection is in shadow" {
 }
 
 /// Compute the color of a ray
-pub fn color_at(w: World, r: Ray) Color {
+pub fn color_at(self: World, r: Ray) Color {
     var buf = [_]Intersection{undefined} ** 100;
-    const xs = intersect(w, r, &buf);
+    const xs = intersect(self, r, &buf);
+    if (xs.len == 0) return Color.BLACK;
     if (Intersection.hit(xs)) |hit| {
         const comps = hit.prepare_computations(r);
-        return shade_hit(w, hit, comps);
+        return shade_hit(self, hit, comps);
     }
     return Color.BLACK;
 }

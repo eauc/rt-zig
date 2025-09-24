@@ -14,7 +14,7 @@ pub fn main() !void {
     const pixel_size = wall_size / canvas_pixel_f;
     const half = wall_size / 2.0;
     var canvas = rt_zig.Canvas.init(allocator, canvas_pixels, canvas_pixels);
-    var shape = rt_zig.Sphere.init();
+    var shape = rt_zig.Object.sphere();
     shape.material.color = rt_zig.Color.init(1, 0.2, 1);
     const light = rt_zig.PointLight.init(rt_zig.Tuple.point(-10, 10, -10), rt_zig.Color.WHITE);
 

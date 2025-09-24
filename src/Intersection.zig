@@ -2,15 +2,15 @@ const std = @import("std");
 const floats = @import("floats.zig");
 const Float = floats.Float;
 const Intersection = @This();
+const Object = @import("Object.zig");
 const Ray = @import("Ray.zig");
-const Sphere = @import("Sphere.zig");
 const transformations = @import("transformations.zig");
 const Tuple = @import("Tuple.zig");
 
 t: Float,
-object: *const Sphere,
+object: *const Object,
 
-pub fn init(t: Float, object: *const Sphere) Intersection {
+pub fn init(t: Float, object: *const Object) Intersection {
     return Intersection{
         .t = t,
         .object = object,
@@ -18,7 +18,7 @@ pub fn init(t: Float, object: *const Sphere) Intersection {
 }
 
 test "An intersection encapsulates t and object" {
-    const s = Sphere.init();
+    const s = Object.sphere();
     const i = init(3.5, &s);
     try std.testing.expectEqual(3.5, i.t);
     try std.testing.expectEqual(&s, i.object);
@@ -47,7 +47,7 @@ pub fn hit(intersections: []const Intersection) ?Intersection {
 }
 
 test "The hit, when all intersections have positive t" {
-    const s = Sphere.init();
+    const s = Object.sphere();
     const int1 = init(1, &s);
     const int2 = init(2, &s);
     const xs = [_]Intersection{ int2, int1 };
@@ -56,7 +56,7 @@ test "The hit, when all intersections have positive t" {
 }
 
 test "The hit, when some intersections have negative t" {
-    const s = Sphere.init();
+    const s = Object.sphere();
     const int1 = init(-1, &s);
     const int2 = init(1, &s);
     const xs = [_]Intersection{ int2, int1 };
@@ -65,7 +65,7 @@ test "The hit, when some intersections have negative t" {
 }
 
 test "The hit, when all intersections have negative t" {
-    const s = Sphere.init();
+    const s = Object.sphere();
     const int1 = init(-2, &s);
     const int2 = init(-1, &s);
     const xs = [_]Intersection{ int2, int1 };
@@ -75,7 +75,7 @@ test "The hit, when all intersections have negative t" {
 
 test hit {
     // The hit is always the lowest nonnegative intersection
-    const s = Sphere.init();
+    const s = Object.sphere();
     const int1 = init(5, &s);
     const int2 = init(7, &s);
     const int3 = init(-3, &s);
@@ -115,7 +115,7 @@ pub fn prepare_computations(i: Intersection, r: Ray) Computations {
 
 test prepare_computations {
     const r = Ray.init(Tuple.point(0, 0, -5), Tuple.vector(0, 0, 1));
-    const shape = Sphere.init();
+    const shape = Object.sphere();
     const i = init(4, &shape);
     const comps = prepare_computations(i, r);
     try Tuple.expectEqual(Tuple.point(0, 0, -1), comps.point);
@@ -125,7 +125,7 @@ test prepare_computations {
 
 test "The hit, when an intersection occurs on the outside" {
     const r = Ray.init(Tuple.point(0, 0, -5), Tuple.vector(0, 0, 1));
-    const shape = Sphere.init();
+    const shape = Object.sphere();
     const i = init(4, &shape);
     const comps = prepare_computations(i, r);
     try std.testing.expectEqual(false, comps.inside);
@@ -133,7 +133,7 @@ test "The hit, when an intersection occurs on the outside" {
 
 test "The hit, when an intersection occurs on the inside" {
     const r = Ray.init(Tuple.point(0, 0, 0), Tuple.vector(0, 0, 1));
-    const shape = Sphere.init();
+    const shape = Object.sphere();
     const i = init(1, &shape);
     const comps = prepare_computations(i, r);
     try std.testing.expectEqual(true, comps.inside);
@@ -144,7 +144,7 @@ test "The hit, when an intersection occurs on the inside" {
 
 test "The hit should offset the point" {
     const r = Ray.init(Tuple.point(0, 0, -5), Tuple.vector(0, 0, 1));
-    var shape = Sphere.init();
+    var shape = Object.sphere();
     shape.transform = transformations.translation(0, 0, 1);
     const i = init(5, &shape);
     const comps = prepare_computations(i, r);

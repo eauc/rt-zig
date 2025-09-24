@@ -11,32 +11,32 @@ pub fn main() !void {
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    var floor = rt_zig.Sphere.init();
+    var floor = rt_zig.Object.sphere();
     floor.transform = scaling(10, 0.01, 10);
     floor.material.color = rt_zig.Color.init(1, 0.9, 0.9);
     floor.material.specular = 0;
 
-    var left_wall = rt_zig.Sphere.init();
+    var left_wall = rt_zig.Object.sphere();
     left_wall.transform = translation(0, 0, 5).mul(rotation_y(-std.math.pi / 4.0)).mul(rotation_x(std.math.pi / 2.0)).mul(scaling(10, 0.01, 10));
     left_wall.material = floor.material;
 
-    var right_wall = rt_zig.Sphere.init();
+    var right_wall = rt_zig.Object.sphere();
     right_wall.transform = translation(0, 0, 5).mul(rotation_y(std.math.pi / 4.0)).mul(rotation_x(std.math.pi / 2.0)).mul(scaling(10, 0.01, 10));
     right_wall.material = floor.material;
 
-    var middle = rt_zig.Sphere.init();
+    var middle = rt_zig.Object.sphere();
     middle.transform = translation(-0.5, 1, 0.5);
     middle.material.color = rt_zig.Color.init(0.1, 1, 0.5);
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
 
-    var right = rt_zig.Sphere.init();
+    var right = rt_zig.Object.sphere();
     right.transform = translation(1.5, 0.5, -0.5).mul(scaling(0.5, 0.5, 0.5));
     right.material.color = rt_zig.Color.init(0.5, 1, 0.1);
     right.material.diffuse = 0.7;
     right.material.specular = 0.3;
 
-    var left = rt_zig.Sphere.init();
+    var left = rt_zig.Object.sphere();
     left.transform = translation(-1.5, 0.33, -0.75).mul(scaling(0.33, 0.33, 0.33));
     left.material.color = rt_zig.Color.init(1, 0.8, 0.1);
     left.material.diffuse = 0.7;
