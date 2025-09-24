@@ -144,8 +144,7 @@ test "The hit, when an intersection occurs on the inside" {
 
 test "The hit should offset the point" {
     const r = Ray.init(Tuple.point(0, 0, -5), Tuple.vector(0, 0, 1));
-    var shape = Object.sphere();
-    shape.transform = transformations.translation(0, 0, 1);
+    var shape = Object.sphere().with_transform(transformations.translation(0, 0, 1));
     const i = init(5, &shape);
     const comps = prepare_computations(i, r);
     try std.testing.expect(comps.over_point.z < -floats.EPSILON / 2);

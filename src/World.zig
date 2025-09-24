@@ -52,8 +52,7 @@ pub fn default(allocator: std.mem.Allocator) World {
     s1.material.color = Color.init(0.8, 1.0, 0.6);
     s1.material.diffuse = 0.7;
     s1.material.specular = 0.2;
-    var s2 = Object.sphere();
-    s2.transform = transformations.scaling(0.5, 0.5, 0.5);
+    const s2 = Object.sphere().with_transform(transformations.scaling(0.5, 0.5, 0.5));
 
     add_object(&w, s1);
     add_object(&w, s2);
@@ -70,8 +69,7 @@ test default {
     s1.material.color = Color.init(0.8, 1.0, 0.6);
     s1.material.diffuse = 0.7;
     s1.material.specular = 0.2;
-    var s2 = Object.sphere();
-    s2.transform = transformations.scaling(0.5, 0.5, 0.5);
+    const s2 = Object.sphere().with_transform(transformations.scaling(0.5, 0.5, 0.5));
 
     var w = default(allocator);
     defer w.deinit();
@@ -144,8 +142,7 @@ test "Shading when the intersection is in shadow" {
     w.lights.items[0] = PointLight.init(Tuple.point(0, 0, -10), Color.WHITE);
     const s1 = Object.sphere();
     w.add_object(s1);
-    var s2 = Object.sphere();
-    s2.transform = transformations.translation(0, 0, 10);
+    var s2 = Object.sphere().with_transform(transformations.translation(0, 0, 10));
     w.add_object(s2);
 
     const r = Ray.init(Tuple.point(0, 0, 5), Tuple.vector(0, 0, 1));
