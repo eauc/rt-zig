@@ -1,16 +1,22 @@
 const Intersection = @import("Intersection.zig");
 const Object = @import("Object.zig");
+const Plane = @import("shapes/Plane.zig");
 const Ray = @import("Ray.zig");
 const Sphere = @import("shapes/Sphere.zig");
 const Tuple = @import("Tuple.zig");
 
 const Shapes = enum {
+    plane,
     sphere,
 };
 
 pub const Shape = union(Shapes) {
+    plane: Plane,
     sphere: Sphere,
 
+    pub fn _plane() Shape {
+        return Shape{ .plane = Plane.init() };
+    }
     pub fn _sphere() Shape {
         return Shape{ .sphere = Sphere.init() };
     }

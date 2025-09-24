@@ -25,6 +25,14 @@ fn init(shape: Shape) Object {
     };
 }
 
+pub fn plane() Object {
+    return init(Shape._plane());
+}
+
+pub fn sphere() Object {
+    return init(Shape._sphere());
+}
+
 pub fn with_transform(self: Object, transform: Matrix) Object {
     const transform_inverse = transform.inverse();
     return Object{
@@ -34,10 +42,6 @@ pub fn with_transform(self: Object, transform: Matrix) Object {
         .transform_inverse = transform_inverse,
         .transform_inverse_transpose = transform_inverse.transpose(),
     };
-}
-
-pub fn sphere() Object {
-    return init(Shape._sphere());
 }
 
 test "A object has a default transformation" {
