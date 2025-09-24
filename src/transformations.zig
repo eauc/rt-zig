@@ -182,3 +182,53 @@ test "Individual transformations are applied in sequence" {
     const p4 = matrices.mult(c, p3);
     try tuples.expectEqual(tuples.point(15, 0, 7), p4);
 }
+
+/// Creates a view transformation
+pub fn view_transform(from: tuples.Tuple, to: tuples.Tuple, up: tuples.Tuple) Matrix {
+    const forward = tuples.normalize(tuples.sub(to, from));
+    const left = tuples.cross(forward, tuples.normalize(up));
+    const true_up = tuples.cross(left, forward);
+    const orientation = matrices.matrix([4][4]Float{
+        [_]Float{ tuples.x(left), tuples.y(left), tuples.z(left), 0 },
+        [_]Float{ tuples.x(true_up), tuples.y(true_up), tuples.z(true_up), 0 },
+        [_]Float{ -tuples.x(forward), -tuples.y(forward), -tuples.z(forward), 0 },
+        [_]Float{ 0, 0, 0, 1 },
+    });
+    return matrices.mul(orientation, translation(-tuples.x(from), -tuples.y(from), -tuples.z(from)));
+}
+
+test "An arbitrary view transformation" {
+    const from = tuples.point(1, 3, 2);
+    const to = tuples.point(4, -2, 8);
+    const up = tuples.vector(1, 1, 0);
+    const t = view_transform(from, to, up);
+    try matrices.expectEqual(matrices.matrix([4][4]Float{
+        [_]Float{ -0.50709, 0.50709, 0.67612, -2.36643 },
+        [_]Float{ 0.76772, 0.60609, 0.12122, -2.82843 },
+        [_]Float{ -0.35857, 0.59761, -0.71714, 0.00000 },
+        [_]Float{ 0.00000, 0.00000, 0.00000, 1.00000 },
+    }), t);
+}
+test "The transformation matrix for the default orientation" {
+    const from = tuples.point(0, 0, 0);
+    const to = tuples.point(0, 0, -1);
+    const up = tuples.vector(0, 1, 0);
+    const t = view_transform(from, to, up);
+    try matrices.expectEqual(matrices.identity(), t);
+}
+
+test "The view transformation matrix looking in positive z direction" {
+    const from = tuples.point(0, 0, 0);
+    const to = tuples.point(0, 0, 1);
+    const up = tuples.vector(0, 1, 0);
+    const t = view_transform(from, to, up);
+    try matrices.expectEqual(scaling(-1, 1, -1), t);
+}
+
+test "The view transformation moves the world" {
+    const from = tuples.point(0, 0, 8);
+    const to = tuples.point(0, 0, 0);
+    const up = tuples.vector(0, 1, 0);
+    const t = view_transform(from, to, up);
+    try matrices.expectEqual(translation(0, 0, -8), t);
+}

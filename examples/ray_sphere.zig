@@ -13,7 +13,7 @@ pub fn main() !void {
     const canvas_pixel_f: rt_zig.floats.Float = @floatFromInt(canvas_pixels);
     const pixel_size = wall_size / canvas_pixel_f;
     const half = wall_size / 2.0;
-    const canvas = rt_zig.canvas.canvas(allocator, canvas_pixels, canvas_pixels);
+    var canvas = rt_zig.canvas.canvas(allocator, canvas_pixels, canvas_pixels);
     const shape = rt_zig.spheres.sphere();
     for (0..canvas_pixels) |y| {
         const y_f: rt_zig.floats.Float = @floatFromInt(y);
@@ -28,7 +28,7 @@ pub fn main() !void {
             var buf = [_]rt_zig.intersections.Intersection{undefined} ** 10;
             const xs = rt_zig.spheres.intersect(&shape, r, &buf);
             if (rt_zig.intersections.hit(xs)) |_| {
-                rt_zig.canvas.write_pixel(canvas, x, y, rt_zig.colors.RED);
+                rt_zig.canvas.write_pixel(&canvas, x, y, rt_zig.colors.RED);
             }
         }
     }

@@ -6,7 +6,7 @@ const RED = colors.RED;
 const floats = @import("floats.zig");
 const Float = floats.Float;
 
-const Canvas = struct {
+pub const Canvas = struct {
     allocator: std.mem.Allocator,
     width: usize,
     height: usize,
@@ -57,16 +57,16 @@ test canvas {
 }
 
 /// Sets the color of the pixel at (x, y)
-pub fn write_pixel(c: Canvas, x: usize, y: usize, color: Color) void {
+pub fn write_pixel(c: *Canvas, x: usize, y: usize, color: Color) void {
     c.pixels[y * c.width + x] = color;
 }
 
 test write_pixel {
     const allocator = std.testing.allocator;
-    const c = canvas(allocator, 10, 20);
+    var c = canvas(allocator, 10, 20);
     defer deinit(c);
 
-    write_pixel(c, 2, 3, RED);
+    write_pixel(&c, 2, 3, RED);
     try colors.expectEqual(RED, pixel(c, 2, 3));
 }
 
@@ -116,11 +116,11 @@ test "Constructing the PPM header" {
 
 test "Constructing the PPM pixel data" {
     const allocator = std.testing.allocator;
-    const c = canvas(allocator, 5, 3);
+    var c = canvas(allocator, 5, 3);
     defer deinit(c);
-    write_pixel(c, 0, 0, colors.color(1.5, 0, 0));
-    write_pixel(c, 2, 1, colors.color(0, 0.5, 0));
-    write_pixel(c, 4, 2, colors.color(-0.5, 0, 1));
+    write_pixel(&c, 0, 0, colors.color(1.5, 0, 0));
+    write_pixel(&c, 2, 1, colors.color(0, 0.5, 0));
+    write_pixel(&c, 4, 2, colors.color(-0.5, 0, 1));
 
     const ppm = to_ppm(c, allocator);
     defer allocator.free(ppm);

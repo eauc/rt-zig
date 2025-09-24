@@ -13,7 +13,7 @@ pub fn main() !void {
     const canvas_pixel_f: rt_zig.floats.Float = @floatFromInt(canvas_pixels);
     const pixel_size = wall_size / canvas_pixel_f;
     const half = wall_size / 2.0;
-    const canvas = rt_zig.canvas.canvas(allocator, canvas_pixels, canvas_pixels);
+    var canvas = rt_zig.canvas.canvas(allocator, canvas_pixels, canvas_pixels);
     var shape = rt_zig.spheres.sphere();
     shape.material.color = rt_zig.colors.color(1, 0.2, 1);
     const light = rt_zig.lights.point_light(rt_zig.tuples.point(-10, 10, -10), rt_zig.colors.WHITE);
@@ -42,7 +42,7 @@ pub fn main() !void {
                 const normal = rt_zig.spheres.normal_at(shape, point);
                 const eyev = rt_zig.tuples.neg(r.direction);
                 const color = rt_zig.materials.lighting(shape.material, light, point, eyev, normal);
-                rt_zig.canvas.write_pixel(canvas, x, y, color);
+                rt_zig.canvas.write_pixel(&canvas, x, y, color);
             }
             progress.completeOne();
         }
