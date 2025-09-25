@@ -9,6 +9,7 @@ pub const Object = @import("Object.zig");
 pub const PointLight = @import("Light.zig");
 pub const Material = @import("Material.zig");
 pub const Matrix = @import("Matrix.zig");
+pub const Pattern = @import("Pattern.zig");
 pub const Ray = @import("Ray.zig");
 pub const Shape = @import("shapes.zig").Shape;
 pub const transformations = @import("transformations.zig");

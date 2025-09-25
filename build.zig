@@ -53,6 +53,11 @@ pub fn build(b: *std.Build) void {
             .desc = "Example: scene done with spheres and planes",
             .path = "examples/spheres_planes.zig",
         },
+        .{
+            .name = "patterns",
+            .desc = "Example: patterns",
+            .path = "examples/patterns.zig",
+        },
     };
 
     for (examples) |example| {

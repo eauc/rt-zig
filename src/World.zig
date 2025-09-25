@@ -108,7 +108,7 @@ test intersect {
 /// Shade an intersection
 pub fn shade_hit(w: World, hit: Intersection, comps: Intersection.Computations) Color {
     const in_shadow = w.is_shadowed(comps.over_point);
-    return hit.object.material.lighting(w.lights.items[0], comps.over_point, comps.eyev, comps.normalv, in_shadow);
+    return hit.object.material.lighting(hit.object.*, w.lights.items[0], comps.over_point, comps.eyev, comps.normalv, in_shadow);
 }
 
 test shade_hit {
