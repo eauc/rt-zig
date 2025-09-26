@@ -14,6 +14,9 @@ ambient: Float,
 diffuse: Float,
 specular: Float,
 shininess: Float,
+reflective: Float,
+transparency: Float,
+refractive_index: Float,
 
 pub fn init() Material {
     return Material{
@@ -23,6 +26,9 @@ pub fn init() Material {
         .diffuse = 0.9,
         .specular = 0.9,
         .shininess = 200.0,
+        .reflective = 0.0,
+        .transparency = 0.0,
+        .refractive_index = 1.0,
     };
 }
 
@@ -33,6 +39,31 @@ test "The default material" {
     try floats.expectEqual(0.9, m.diffuse);
     try floats.expectEqual(0.9, m.specular);
     try floats.expectEqual(200.0, m.shininess);
+    try floats.expectEqual(0.0, m.reflective);
+    try floats.expectEqual(0.0, m.transparency);
+    try floats.expectEqual(1.0, m.refractive_index);
+}
+
+pub fn glass() Material {
+    return Material{
+        .pattern = null,
+        .color = Color.WHITE,
+        .ambient = 0.0,
+        .diffuse = 0.588235,
+        .specular = 0.9,
+        .shininess = 300.0,
+        .reflective = 0.08,
+        .transparency = 1.0,
+        .refractive_index = 1.5,
+    };
+}
+
+test "Glass" {
+    const m = glass();
+    try Color.expectEqual(Color.WHITE, m.color);
+    try floats.expectEqual(0.08, m.reflective);
+    try floats.expectEqual(1.0, m.transparency);
+    try floats.expectEqual(1.5, m.refractive_index);
 }
 
 /// Calculate the lighting for a given material, light, and position

@@ -17,6 +17,7 @@ half_width: Float,
 half_height: Float,
 pixel_size: Float,
 transform: Matrix,
+reflection_depth: usize,
 
 pub fn init(hsize: usize, vsize: usize, field_of_view: Float) Camera {
     const half_view = std.math.tan(field_of_view / 2);
@@ -31,6 +32,7 @@ pub fn init(hsize: usize, vsize: usize, field_of_view: Float) Camera {
         .half_height = 0,
         .pixel_size = 0,
         .transform = Matrix.identity(),
+        .reflection_depth = 5,
     };
     if (aspect > 1) {
         c.half_width = half_view;
@@ -62,15 +64,15 @@ test "The pixel size for a vertical canvas" {
 }
 
 /// Construct a ray for a pixel
-pub fn ray_for_pixel(c: Camera, x: usize, y: usize) Ray {
+pub fn ray_for_pixel(self: Camera, x: usize, y: usize) Ray {
     const x_f: Float = @floatFromInt(x);
     const y_f: Float = @floatFromInt(y);
-    const offset_x = (x_f + 0.5) * c.pixel_size;
-    const offset_y = (y_f + 0.5) * c.pixel_size;
-    const world_x = c.half_width - offset_x;
-    const world_y = c.half_height - offset_y;
-    const pixel = c.transform.inverse().mult(Tuple.point(world_x, world_y, -1));
-    const origin = c.transform.inverse().mult(Tuple.point(0, 0, 0));
+    const offset_x = (x_f + 0.5) * self.pixel_size;
+    const offset_y = (y_f + 0.5) * self.pixel_size;
+    const world_x = self.half_width - offset_x;
+    const world_y = self.half_height - offset_y;
+    const pixel = self.transform.inverse().mult(Tuple.point(world_x, world_y, -1));
+    const origin = self.transform.inverse().mult(Tuple.point(0, 0, 0));
     const direction = Tuple.normalize(Tuple.sub(pixel, origin));
     return Ray.init(origin, direction);
 }
@@ -97,17 +99,17 @@ test "Constructing a ray when the camera is transformed" {
     try Tuple.expectEqual(Tuple.vector(floats.sqrt2 / 2, 0, -floats.sqrt2 / 2), r.direction);
 }
 
-pub fn render(c: Camera, w: World, allocator: std.mem.Allocator) Canvas {
-    var image = Canvas.init(allocator, c.hsize, c.vsize);
+pub fn render(self: Camera, w: World, allocator: std.mem.Allocator) Canvas {
+    var image = Canvas.init(allocator, self.hsize, self.vsize);
     var progress = std.Progress.start(.{
         .root_name = "Rendering",
-        .estimated_total_items = c.vsize * c.hsize,
+        .estimated_total_items = self.vsize * self.hsize,
         .initial_delay_ns = 0,
     });
-    for (0..c.vsize) |y| {
-        for (0..c.hsize) |x| {
-            const ray = ray_for_pixel(c, x, y);
-            const color = w.color_at(ray);
+    for (0..self.vsize) |y| {
+        for (0..self.hsize) |x| {
+            const ray = ray_for_pixel(self, x, y);
+            const color = w.color_at(ray, self.reflection_depth);
             image.write_pixel(x, y, color);
             progress.completeOne();
         }

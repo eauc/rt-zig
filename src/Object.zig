@@ -33,6 +33,16 @@ pub fn sphere() Object {
     return init(Shape._sphere());
 }
 
+pub fn made_of_glass(self: Object) Object {
+    return Object{
+        .material = Material.glass(),
+        .shape = self.shape,
+        .transform = self.transform,
+        .transform_inverse = self.transform_inverse,
+        .transform_inverse_transpose = self.transform_inverse_transpose,
+    };
+}
+
 pub fn with_transform(self: Object, transform: Matrix) Object {
     const transform_inverse = transform.inverse();
     return Object{

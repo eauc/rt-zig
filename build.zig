@@ -58,6 +58,16 @@ pub fn build(b: *std.Build) void {
             .desc = "Example: patterns",
             .path = "examples/patterns.zig",
         },
+        .{
+            .name = "reflection",
+            .desc = "Example: reflection",
+            .path = "examples/reflection.zig",
+        },
+        .{
+            .name = "refraction",
+            .desc = "Example: refraction",
+            .path = "examples/refraction.zig",
+        },
     };
 
     for (examples) |example| {

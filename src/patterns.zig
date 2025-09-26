@@ -12,6 +12,7 @@ pub const Pattern = union(enum) {
     gradient: Gradient,
     ring: Ring,
     stripe: Stripe,
+    _test: Test,
 
     pub fn init_checker(a: Color, b: Color) Pattern {
         return Pattern{ .checker = Checker.init(a, b) };
@@ -25,10 +26,22 @@ pub const Pattern = union(enum) {
     pub fn init_stripe(a: Color, b: Color) Pattern {
         return Pattern{ .stripe = Stripe.init(a, b) };
     }
+    pub fn init_test() Pattern {
+        return Pattern{ ._test = Test.init() };
+    }
 
     pub fn color_at(self: Pattern, point: Tuple) Color {
         return switch (self) {
             inline else => |p| p.color_at(point),
         };
+    }
+};
+
+const Test = struct {
+    pub fn init() Test {
+        return Test{};
+    }
+    pub fn color_at(_: Test, point: Tuple) Color {
+        return Color.init(point.x, point.y, point.z);
     }
 };

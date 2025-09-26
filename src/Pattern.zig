@@ -34,6 +34,9 @@ pub fn ring(a: Color, b: Color) Pattern {
 pub fn stripe(a: Color, b: Color) Pattern {
     return init(patterns.Pattern.init_stripe(a, b));
 }
+pub fn _test() Pattern {
+    return init(patterns.Pattern.init_test());
+}
 
 pub fn with_transform(self: Pattern, transform: Matrix) Pattern {
     return Pattern{
