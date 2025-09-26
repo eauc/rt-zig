@@ -25,10 +25,12 @@ fn init(shape: Shape) Object {
     };
 }
 
+pub fn cube() Object {
+    return init(Shape._cube());
+}
 pub fn plane() Object {
     return init(Shape._plane());
 }
-
 pub fn sphere() Object {
     return init(Shape._sphere());
 }

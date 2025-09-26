@@ -1,3 +1,4 @@
+const Cube = @import("shapes/Cube.zig");
 const Intersection = @import("Intersection.zig");
 const Object = @import("Object.zig");
 const Plane = @import("shapes/Plane.zig");
@@ -5,15 +6,14 @@ const Ray = @import("Ray.zig");
 const Sphere = @import("shapes/Sphere.zig");
 const Tuple = @import("Tuple.zig");
 
-const Shapes = enum {
-    plane,
-    sphere,
-};
-
-pub const Shape = union(Shapes) {
+pub const Shape = union(enum) {
+    cube: Cube,
     plane: Plane,
     sphere: Sphere,
 
+    pub fn _cube() Shape {
+        return Shape{ .cube = Cube.init() };
+    }
     pub fn _plane() Shape {
         return Shape{ .plane = Plane.init() };
     }
