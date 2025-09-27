@@ -1,4 +1,7 @@
+const Cylinder = @import("shapes/Cylinder.zig");
 const Cube = @import("shapes/Cube.zig");
+const floats = @import("floats.zig");
+const Float = floats.Float;
 const Intersection = @import("Intersection.zig");
 const Object = @import("Object.zig");
 const Plane = @import("shapes/Plane.zig");
@@ -7,10 +10,14 @@ const Sphere = @import("shapes/Sphere.zig");
 const Tuple = @import("Tuple.zig");
 
 pub const Shape = union(enum) {
+    cylinder: Cylinder,
     cube: Cube,
     plane: Plane,
     sphere: Sphere,
 
+    pub fn _cylinder() Shape {
+        return Shape{ .cylinder = Cylinder.init() };
+    }
     pub fn _cube() Shape {
         return Shape{ .cube = Cube.init() };
     }
@@ -19,6 +26,13 @@ pub const Shape = union(enum) {
     }
     pub fn _sphere() Shape {
         return Shape{ .sphere = Sphere.init() };
+    }
+
+    pub fn truncate(self: Shape, minimum: Float, maximum: Float, is_closed: bool) Shape {
+        switch (self) {
+            .cylinder => |c| return Shape{ .cylinder = c.truncate(minimum, maximum, is_closed) },
+            else => @panic("Cannot truncate shape"),
+        }
     }
 
     pub fn local_intersect(self: Shape, ray: Ray, object: *const Object, buf: []Intersection) []Intersection {

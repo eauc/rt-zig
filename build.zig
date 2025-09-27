@@ -73,6 +73,11 @@ pub fn build(b: *std.Build) void {
             .desc = "Example: cubes",
             .path = "examples/cubes.zig",
         },
+        .{
+            .name = "cylinders",
+            .desc = "Example: cylinders",
+            .path = "examples/cylinders.zig",
+        },
     };
 
     for (examples) |example| {

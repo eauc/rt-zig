@@ -1,5 +1,6 @@
 const std = @import("std");
 const floats = @import("floats.zig");
+const Float = floats.Float;
 const Intersection = @import("Intersection.zig");
 const Material = @import("Material.zig");
 const Matrix = @import("Matrix.zig");
@@ -25,6 +26,9 @@ fn init(shape: Shape) Object {
     };
 }
 
+pub fn cylinder() Object {
+    return init(Shape._cylinder());
+}
 pub fn cube() Object {
     return init(Shape._cube());
 }
@@ -39,6 +43,16 @@ pub fn made_of_glass(self: Object) Object {
     return Object{
         .material = Material.glass(),
         .shape = self.shape,
+        .transform = self.transform,
+        .transform_inverse = self.transform_inverse,
+        .transform_inverse_transpose = self.transform_inverse_transpose,
+    };
+}
+
+pub fn truncate(self: Object, minimum: Float, maximum: Float, is_closed: bool) Object {
+    return Object{
+        .material = self.material,
+        .shape = self.shape.truncate(minimum, maximum, is_closed),
         .transform = self.transform,
         .transform_inverse = self.transform_inverse,
         .transform_inverse_transpose = self.transform_inverse_transpose,
