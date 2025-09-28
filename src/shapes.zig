@@ -1,5 +1,6 @@
-const Cylinder = @import("shapes/Cylinder.zig");
+const Cone = @import("shapes/Cone.zig");
 const Cube = @import("shapes/Cube.zig");
+const Cylinder = @import("shapes/Cylinder.zig");
 const floats = @import("floats.zig");
 const Float = floats.Float;
 const Intersection = @import("Intersection.zig");
@@ -10,11 +11,15 @@ const Sphere = @import("shapes/Sphere.zig");
 const Tuple = @import("Tuple.zig");
 
 pub const Shape = union(enum) {
-    cylinder: Cylinder,
+    cone: Cone,
     cube: Cube,
+    cylinder: Cylinder,
     plane: Plane,
     sphere: Sphere,
 
+    pub fn _cone() Shape {
+        return Shape{ .cone = Cone.init() };
+    }
     pub fn _cylinder() Shape {
         return Shape{ .cylinder = Cylinder.init() };
     }
@@ -30,6 +35,7 @@ pub const Shape = union(enum) {
 
     pub fn truncate(self: Shape, minimum: Float, maximum: Float, is_closed: bool) Shape {
         switch (self) {
+            .cone => |c| return Shape{ .cone = c.truncate(minimum, maximum, is_closed) },
             .cylinder => |c| return Shape{ .cylinder = c.truncate(minimum, maximum, is_closed) },
             else => @panic("Cannot truncate shape"),
         }

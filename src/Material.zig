@@ -49,10 +49,10 @@ pub fn glass() Material {
         .pattern = null,
         .color = Color.WHITE,
         .ambient = 0.0,
-        .diffuse = 0.588235,
+        .diffuse = 0.1,
         .specular = 0.9,
-        .shininess = 300.0,
-        .reflective = 0.08,
+        .shininess = 500.0,
+        .reflective = 0.1,
         .transparency = 1.0,
         .refractive_index = 1.5,
     };
@@ -61,7 +61,7 @@ pub fn glass() Material {
 test "Glass" {
     const m = glass();
     try Color.expectEqual(Color.WHITE, m.color);
-    try floats.expectEqual(0.08, m.reflective);
+    try floats.expectEqual(0.1, m.reflective);
     try floats.expectEqual(1.0, m.transparency);
     try floats.expectEqual(1.5, m.refractive_index);
 }

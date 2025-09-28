@@ -26,11 +26,14 @@ fn init(shape: Shape) Object {
     };
 }
 
-pub fn cylinder() Object {
-    return init(Shape._cylinder());
+pub fn cone() Object {
+    return init(Shape._cone());
 }
 pub fn cube() Object {
     return init(Shape._cube());
+}
+pub fn cylinder() Object {
+    return init(Shape._cylinder());
 }
 pub fn plane() Object {
     return init(Shape._plane());

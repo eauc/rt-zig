@@ -150,6 +150,7 @@ test magnitude {
 
 /// Normalizes a tuple
 pub fn normalize(self: Tuple) Tuple {
+    if (magnitude(self) == 0.0) return self;
     return self.divs(magnitude(self));
 }
 

@@ -40,7 +40,7 @@ pub fn local_intersect(self: Cylinder, ray: Ray, object: *const Object, buf: []I
     return buf[0 .. sides_xs.len + caps_xs.len];
 }
 
-pub fn intersect_sides(self: Cylinder, ray: Ray, object: *const Object, buf: []Intersection) []Intersection {
+fn intersect_sides(self: Cylinder, ray: Ray, object: *const Object, buf: []Intersection) []Intersection {
     const a = std.math.pow(f32, ray.direction.x, 2) + std.math.pow(f32, ray.direction.z, 2);
     if (floats.equals(a, 0)) return buf[0..0];
     const b = 2 * ray.origin.x * ray.direction.x + 2 * ray.origin.z * ray.direction.z;
