@@ -1,4 +1,5 @@
 const std = @import("std");
+const BoundingBox = @import("../BoundingBox.zig");
 const Cone = @This();
 const floats = @import("../floats.zig");
 const Float = floats.Float;
@@ -32,6 +33,11 @@ test "The default minimum and maximum for a cone" {
     try std.testing.expectEqual(-std.math.inf(Float), cyl.minimum);
     try std.testing.expectEqual(std.math.inf(Float), cyl.maximum);
     try std.testing.expectEqual(false, cyl.is_closed);
+}
+
+pub fn prepare_bounding_box(self: *Cone) BoundingBox {
+    const size = @max(@abs(self.minimum), @abs(self.maximum));
+    return BoundingBox.init(Tuple.point(-size, self.minimum, -size), Tuple.point(size, self.maximum, size));
 }
 
 pub fn local_intersect(self: Cone, ray: Ray, object: *const Object, buf: []Intersection) []Intersection {

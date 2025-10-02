@@ -1,4 +1,5 @@
 const std = @import("std");
+const BoundingBox = @import("../BoundingBox.zig");
 const Group = @This();
 const Intersection = @import("../Intersection.zig");
 const Matrix = @import("../Matrix.zig");
@@ -50,15 +51,27 @@ test "Adding a child to a group" {
     try std.testing.expect(!g.as_group().is_empty());
 }
 
-pub fn prepare(self: *Group, world_to_object: Matrix, object_to_world: Matrix) void {
+pub fn prepare_transform(self: *Group, world_to_object: Matrix, object_to_world: Matrix) void {
     for (self.children.items) |*child| {
         child.world_to_object = child.transform_inverse.mul(world_to_object);
         child.object_to_world = object_to_world.mul(child.transform_inverse.transpose());
-        child.prepare();
+        child.prepare_transform();
     }
 }
 
-pub fn local_intersect(self: Group, ray: Ray, _: *const Object, buf: []Intersection) []Intersection {
+pub fn prepare_bounding_box(self: *Group) BoundingBox {
+    var box = BoundingBox.infinite();
+    for (self.children.items) |*child| {
+        child.prepare_bounding_box();
+        box = box.merge(child.bounding_box.transform(child.transform));
+    }
+    return box;
+}
+
+pub fn local_intersect(self: Group, ray: Ray, object: *const Object, buf: []Intersection) []Intersection {
+    if (!object.bounding_box.intersect(ray)) {
+        return buf[0..0];
+    }
     var count: usize = 0;
     for (self.children.items) |*child| {
         const xs = child.intersect(ray, buf[count..]);
@@ -113,9 +126,7 @@ test "Intersecting a transformed group" {
     const s = Object.sphere().with_transform(transformations.translation(5, 0, 0));
     _ = g.as_group().add_child(s);
 
-    std.debug.print("start prepare\n", .{});
     g.prepare();
-    std.debug.print("end prepare\n", .{});
     const r = Ray.init(Tuple.point(10, 0, -10), Tuple.vector(0, 0, 1));
 
     var buf = [_]Intersection{undefined} ** 10;

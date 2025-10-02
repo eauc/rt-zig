@@ -1,4 +1,5 @@
 const std = @import("std");
+const BoundingBox = @import("../BoundingBox.zig");
 const floats = @import("../floats.zig");
 const Intersection = @import("../Intersection.zig");
 const Object = @import("../Object.zig");
@@ -8,6 +9,13 @@ const Tuple = @import("../Tuple.zig");
 
 pub fn init() Plane {
     return Plane{};
+}
+
+pub fn prepare_bounding_box(_: *Plane) BoundingBox {
+    var box = BoundingBox.infinite();
+    box.min.y = -floats.EPSILON;
+    box.max.y = floats.EPSILON;
+    return box;
 }
 
 pub fn local_intersect(self: Plane, ray: Ray, object: *const Object, buf: []Intersection) []Intersection {

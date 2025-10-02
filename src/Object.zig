@@ -1,4 +1,5 @@
 const std = @import("std");
+const BoundingBox = @import("BoundingBox.zig");
 const floats = @import("floats.zig");
 const Float = floats.Float;
 const Intersection = @import("Intersection.zig");
@@ -13,6 +14,7 @@ const Tuple = @import("Tuple.zig");
 
 material: Material,
 shape: Shape,
+bounding_box: BoundingBox,
 transform: Matrix,
 transform_inverse: Matrix,
 world_to_object: Matrix,
@@ -21,11 +23,12 @@ object_to_world: Matrix,
 fn init(shape: Shape) Object {
     return Object{
         .material = Material.init(),
+        .shape = shape,
+        .bounding_box = BoundingBox.default(),
         .transform = Matrix.identity(),
         .transform_inverse = Matrix.identity(),
         .world_to_object = Matrix.identity(),
         .object_to_world = Matrix.identity(),
-        .shape = shape,
     };
 }
 
@@ -56,6 +59,7 @@ pub fn made_of_glass(self: Object) Object {
     return Object{
         .material = Material.glass(),
         .shape = self.shape,
+        .bounding_box = self.bounding_box,
         .transform = self.transform,
         .transform_inverse = self.transform_inverse,
         .world_to_object = self.world_to_object,
@@ -67,6 +71,7 @@ pub fn truncate(self: Object, minimum: Float, maximum: Float, is_closed: bool) O
     return Object{
         .material = self.material,
         .shape = self.shape.truncate(minimum, maximum, is_closed),
+        .bounding_box = self.bounding_box,
         .transform = self.transform,
         .transform_inverse = self.transform_inverse,
         .world_to_object = self.world_to_object,
@@ -79,6 +84,7 @@ pub fn with_transform(self: Object, transform: Matrix) Object {
     return Object{
         .material = self.material,
         .shape = self.shape,
+        .bounding_box = self.bounding_box,
         .transform = transform,
         .transform_inverse = transform_inverse,
         .world_to_object = transform_inverse,
@@ -87,7 +93,16 @@ pub fn with_transform(self: Object, transform: Matrix) Object {
 }
 
 pub fn prepare(self: *Object) void {
-    self.shape.prepare(self.world_to_object, self.object_to_world);
+    self.prepare_bounding_box();
+    self.prepare_transform();
+}
+
+pub fn prepare_bounding_box(self: *Object) void {
+    self.bounding_box = self.shape.prepare_bounding_box();
+}
+
+pub fn prepare_transform(self: *Object) void {
+    self.shape.prepare_transform(self.world_to_object, self.object_to_world);
 }
 
 test "A object has a default transformation" {

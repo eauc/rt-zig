@@ -1,4 +1,5 @@
 const std = @import("std");
+const BoundingBox = @import("../BoundingBox.zig");
 const Cylinder = @This();
 const floats = @import("../floats.zig");
 const Float = floats.Float;
@@ -32,6 +33,13 @@ test "The default minimum and maximum for a cylinder" {
     try std.testing.expectEqual(-std.math.inf(Float), cyl.minimum);
     try std.testing.expectEqual(std.math.inf(Float), cyl.maximum);
     try std.testing.expectEqual(false, cyl.is_closed);
+}
+
+pub fn prepare_bounding_box(self: Cylinder) BoundingBox {
+    var box = BoundingBox.default();
+    box.min.y = self.minimum;
+    box.max.y = self.maximum;
+    return box;
 }
 
 pub fn local_intersect(self: Cylinder, ray: Ray, object: *const Object, buf: []Intersection) []Intersection {

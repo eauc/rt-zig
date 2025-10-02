@@ -1,4 +1,5 @@
 const std = @import("std");
+const BoundingBox = @import("BoundingBox.zig");
 const Cone = @import("shapes/Cone.zig");
 const Cube = @import("shapes/Cube.zig");
 const Cylinder = @import("shapes/Cylinder.zig");
@@ -48,11 +49,21 @@ pub const Shape = union(enum) {
         }
     }
 
-    pub fn prepare(self: *Shape, world_to_object: Matrix, object_to_world: Matrix) void {
+    pub fn prepare_transform(self: *Shape, world_to_object: Matrix, object_to_world: Matrix) void {
         switch (self.*) {
-            .group => |*g| g.prepare(world_to_object, object_to_world),
+            .group => |*g| g.prepare_transform(world_to_object, object_to_world),
             else => {},
         }
+    }
+
+    pub fn prepare_bounding_box(self: *Shape) BoundingBox {
+        return switch (self.*) {
+            .cone => |*c| c.prepare_bounding_box(),
+            .cylinder => |*c| c.prepare_bounding_box(),
+            .group => |*g| g.prepare_bounding_box(),
+            .plane => |*p| p.prepare_bounding_box(),
+            inline else => BoundingBox.default(),
+        };
     }
 
     pub fn local_intersect(self: Shape, ray: Ray, object: *const Object, buf: []Intersection) []Intersection {
