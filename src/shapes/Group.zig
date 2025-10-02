@@ -20,6 +20,9 @@ pub fn init(allocator: std.mem.Allocator) Group {
 }
 
 pub fn deinit(self: *Group) void {
+    for (self.children.items) |*child| {
+        child.deinit();
+    }
     self.children.deinit(self.allocator);
 }
 

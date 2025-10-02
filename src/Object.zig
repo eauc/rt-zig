@@ -32,6 +32,10 @@ fn init(shape: Shape) Object {
     };
 }
 
+pub fn deinit(self: *Object) void {
+    self.shape.deinit();
+}
+
 pub fn cone() Object {
     return init(Shape._cone());
 }
@@ -56,6 +60,9 @@ pub fn triangle(p1: Tuple, p2: Tuple, p3: Tuple) Object {
 
 pub fn as_group(self: *Object) *shapes.Group {
     return &self.shape.group;
+}
+pub fn as_triangle(self: *Object) *shapes.Triangle {
+    return &self.shape.triangle;
 }
 
 pub fn made_of_glass(self: Object) Object {
@@ -198,7 +205,6 @@ test "Converting a point from world to object space" {
     const allocator = std.testing.allocator;
 
     var g2 = Object.group(allocator).with_transform(transformations.scaling(2, 2, 2));
-    defer g2.as_group().deinit();
     const s = g2.as_group().add_child(Object.sphere().with_transform(transformations.translation(5, 0, 0)));
 
     var g1 = Object.group(allocator).with_transform(transformations.rotation_y(std.math.pi / 2.0));
@@ -214,7 +220,6 @@ test "Converting a normal from object to world space" {
     const allocator = std.testing.allocator;
 
     var g2 = Object.group(allocator).with_transform(transformations.scaling(1, 2, 3));
-    defer g2.as_group().deinit();
     const s = g2.as_group().add_child(Object.sphere().with_transform(transformations.translation(5, 0, 0)));
 
     var g1 = Object.group(allocator).with_transform(transformations.rotation_y(std.math.pi / 2.0));
@@ -231,7 +236,6 @@ test "Finding the normal on a child object" {
     const allocator = std.testing.allocator;
 
     var g2 = Object.group(allocator).with_transform(transformations.scaling(1, 2, 3));
-    defer g2.as_group().deinit();
     var s = g2.as_group().add_child(Object.sphere().with_transform(transformations.translation(5, 0, 0)));
 
     var g1 = Object.group(allocator).with_transform(transformations.rotation_y(std.math.pi / 2.0));

@@ -12,7 +12,7 @@ const Object = @import("Object.zig");
 const Plane = @import("shapes/Plane.zig");
 const Ray = @import("Ray.zig");
 const Sphere = @import("shapes/Sphere.zig");
-const Triangle = @import("shapes/Triangle.zig");
+pub const Triangle = @import("shapes/Triangle.zig");
 const Tuple = @import("Tuple.zig");
 
 pub const Shape = union(enum) {
@@ -44,6 +44,13 @@ pub const Shape = union(enum) {
     }
     pub fn _triangle(p1: Tuple, p2: Tuple, p3: Tuple) Shape {
         return Shape{ .triangle = Triangle.init(p1, p2, p3) };
+    }
+
+    pub fn deinit(self: *Shape) void {
+        switch (self.*) {
+            .group => |*g| g.deinit(),
+            else => {},
+        }
     }
 
     pub fn truncate(self: Shape, minimum: Float, maximum: Float, is_closed: bool) Shape {
