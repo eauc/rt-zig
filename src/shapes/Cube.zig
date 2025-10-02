@@ -105,6 +105,7 @@ test "The normal on the surface of a cube" {
         .{ Tuple.point(1, 1, 1), Tuple.vector(1, 0, 0) },
         .{ Tuple.point(-1, -1, -1), Tuple.vector(-1, 0, 0) },
     }) |example| {
-        try Tuple.expectEqual(example[1], c.normal_at(example[0]));
+        const n = c.normal_at(example[0], Intersection.init(0, &c));
+        try Tuple.expectEqual(example[1], n);
     }
 }

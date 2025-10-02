@@ -80,9 +80,9 @@ pub fn local_normal_at(self: Plane, local_point: Tuple) Tuple {
 
 test "the normal of a plane is constant everywhere" {
     const p = Object.plane();
-    const n1 = p.normal_at(Tuple.point(0, 0, 0));
-    const n2 = p.normal_at(Tuple.point(10, 0, -10));
-    const n3 = p.normal_at(Tuple.point(-5, 0, 150));
+    const n1 = p.normal_at(Tuple.point(0, 0, 0), Intersection.init(0, &p));
+    const n2 = p.normal_at(Tuple.point(10, 0, -10), Intersection.init(0, &p));
+    const n3 = p.normal_at(Tuple.point(-5, 0, 150), Intersection.init(0, &p));
     try Tuple.expectEqual(n1, Tuple.vector(0, 1, 0));
     try Tuple.expectEqual(n2, Tuple.vector(0, 1, 0));
     try Tuple.expectEqual(n3, Tuple.vector(0, 1, 0));

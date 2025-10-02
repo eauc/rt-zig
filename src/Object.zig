@@ -51,6 +51,9 @@ pub fn group(allocator: std.mem.Allocator) Object {
 pub fn plane() Object {
     return init(Shape._plane());
 }
+pub fn smooth_triangle(p1: Tuple, p2: Tuple, p3: Tuple, n1: Tuple, n2: Tuple, n3: Tuple) Object {
+    return init(Shape._smooth_triangle(p1, p2, p3, n1, n2, n3));
+}
 pub fn sphere() Object {
     return init(Shape._sphere());
 }
@@ -60,6 +63,9 @@ pub fn triangle(p1: Tuple, p2: Tuple, p3: Tuple) Object {
 
 pub fn as_group(self: *Object) *shapes.Group {
     return &self.shape.group;
+}
+pub fn as_smooth_triangle(self: *Object) *shapes.SmoothTriangle {
+    return &self.shape.smooth_triangle;
 }
 pub fn as_triangle(self: *Object) *shapes.Triangle {
     return &self.shape.triangle;
@@ -175,9 +181,9 @@ test "Intersecting a translated sphere with a ray" {
     try std.testing.expectEqual(0, xs.len);
 }
 
-pub fn normal_at(self: Object, world_point: Tuple) Tuple {
+pub fn normal_at(self: Object, world_point: Tuple, hit: Intersection) Tuple {
     const local_point = self.world_to_object.mult(world_point);
-    const local_normal = self.shape.local_normal_at(local_point);
+    const local_normal = self.shape.local_normal_at(local_point, hit);
     var world_normal = self.object_to_world.mult(local_normal);
     world_normal.to_vector();
     return world_normal.normalize();
@@ -185,19 +191,19 @@ pub fn normal_at(self: Object, world_point: Tuple) Tuple {
 
 test "The normal is a normalized vector" {
     const s = Object.sphere();
-    const n = s.normal_at(Tuple.point(floats.sqrt3 / 3, floats.sqrt3 / 3, floats.sqrt3 / 3));
+    const n = s.normal_at(Tuple.point(floats.sqrt3 / 3, floats.sqrt3 / 3, floats.sqrt3 / 3), Intersection.init(0, &s));
     try Tuple.expectEqual(n, n.normalize());
 }
 
 test "Computing the normal on a translated sphere" {
     var s = Object.sphere().with_transform(transformations.translation(0, 1, 0));
-    const n = s.normal_at(Tuple.point(0, 1.70711, -0.70711));
+    const n = s.normal_at(Tuple.point(0, 1.70711, -0.70711), Intersection.init(0, &s));
     try Tuple.expectEqual(Tuple.vector(0, 0.70711, -0.70711), n);
 }
 
 test "Computing the normal on a transformed sphere" {
     var s = Object.sphere().with_transform(transformations.scaling(1, 0.5, 1).mul(transformations.rotation_z(floats.pi / 5)));
-    const n = s.normal_at(Tuple.point(0, floats.sqrt2 / 2, -floats.sqrt2 / 2));
+    const n = s.normal_at(Tuple.point(0, floats.sqrt2 / 2, -floats.sqrt2 / 2), Intersection.init(0, &s));
     try Tuple.expectEqual(Tuple.vector(0, 0.97014, -0.24254), n);
 }
 
@@ -243,6 +249,6 @@ test "Finding the normal on a child object" {
     _ = g1.as_group().add_child(g2);
 
     g1.prepare();
-    const n = s.normal_at(Tuple.point(1.7321, 1.1547, -5.5774));
+    const n = s.normal_at(Tuple.point(1.7321, 1.1547, -5.5774), Intersection.init(0, s));
     try Tuple.expectEqual(Tuple.vector(0.2857, 0.42854, -0.85716), n);
 }

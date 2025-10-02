@@ -11,6 +11,7 @@ const Matrix = @import("Matrix.zig");
 const Object = @import("Object.zig");
 const Plane = @import("shapes/Plane.zig");
 const Ray = @import("Ray.zig");
+pub const SmoothTriangle = @import("shapes/SmoothTriangle.zig");
 const Sphere = @import("shapes/Sphere.zig");
 pub const Triangle = @import("shapes/Triangle.zig");
 const Tuple = @import("Tuple.zig");
@@ -22,6 +23,7 @@ pub const Shape = union(enum) {
     group: Group,
     plane: Plane,
     sphere: Sphere,
+    smooth_triangle: SmoothTriangle,
     triangle: Triangle,
 
     pub fn _cone() Shape {
@@ -41,6 +43,9 @@ pub const Shape = union(enum) {
     }
     pub fn _sphere() Shape {
         return Shape{ .sphere = Sphere.init() };
+    }
+    pub fn _smooth_triangle(p1: Tuple, p2: Tuple, p3: Tuple, n1: Tuple, n2: Tuple, n3: Tuple) Shape {
+        return Shape{ .smooth_triangle = SmoothTriangle.init(p1, p2, p3, n1, n2, n3) };
     }
     pub fn _triangle(p1: Tuple, p2: Tuple, p3: Tuple) Shape {
         return Shape{ .triangle = Triangle.init(p1, p2, p3) };
@@ -85,8 +90,9 @@ pub const Shape = union(enum) {
         };
     }
 
-    pub fn local_normal_at(self: Shape, local_point: Tuple) Tuple {
+    pub fn local_normal_at(self: Shape, local_point: Tuple, hit: Intersection) Tuple {
         return switch (self) {
+            .smooth_triangle => |s| s.local_normal_at(local_point, hit),
             inline else => |s| s.local_normal_at(local_point),
         };
     }

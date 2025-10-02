@@ -156,7 +156,7 @@ test "Computing the normal vector on a cone" {
         .{ Tuple.point(1, 1, 1), Tuple.vector(1, -floats.sqrt2, 1) },
         .{ Tuple.point(-1, -1, 0), Tuple.vector(-1, 1, 0) },
     }) |example| {
-        const n = cone.normal_at(example[0]);
+        const n = cone.normal_at(example[0], Intersection.init(0, &cone));
         try Tuple.expectEqual(example[1].normalize(), n);
     }
 }

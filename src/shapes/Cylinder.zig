@@ -173,7 +173,7 @@ test "Normal vector on a cylinder" {
         .{ Tuple.point(0, -2, 1), Tuple.vector(0, 0, 1) },
         .{ Tuple.point(-1, 1, 0), Tuple.vector(-1, 0, 0) },
     }) |example| {
-        const n = cyl.normal_at(example[0]);
+        const n = cyl.normal_at(example[0], Intersection.init(0, &cyl));
         try Tuple.expectEqual(example[1], n);
     }
 }
@@ -188,7 +188,7 @@ test "The normal vector on a cylinder's end caps" {
         .{ Tuple.point(0.5, 2, 0), Tuple.vector(0, 1, 0) },
         .{ Tuple.point(0, 2, 0.5), Tuple.vector(0, 1, 0) },
     }) |example| {
-        const n = cyl.normal_at(example[0]);
+        const n = cyl.normal_at(example[0], Intersection.init(0, &cyl));
         try Tuple.expectEqual(example[1], n);
     }
 }

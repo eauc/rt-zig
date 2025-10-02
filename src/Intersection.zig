@@ -9,11 +9,24 @@ const Tuple = @import("Tuple.zig");
 
 t: Float,
 object: *const Object,
+u: Float,
+v: Float,
 
 pub fn init(t: Float, object: *const Object) Intersection {
     return Intersection{
         .t = t,
         .object = object,
+        .u = 0,
+        .v = 0,
+    };
+}
+
+pub fn init_with_uv(t: Float, object: *const Object, u: Float, v: Float) Intersection {
+    return Intersection{
+        .t = t,
+        .object = object,
+        .u = u,
+        .v = v,
     };
 }
 
@@ -153,7 +166,7 @@ pub const Computations = struct {
 pub fn init_computations(i: Intersection, r: Ray, xs: []const Intersection) Computations {
     const point = r.position(i.t);
     const eyev = r.direction.normalize().neg();
-    const normalv = i.object.normal_at(point).normalize();
+    const normalv = i.object.normal_at(point, i).normalize();
     var comps = Computations{
         .inside = false,
         .point = point,
@@ -288,4 +301,11 @@ test "The Schlick approximation with a small angle and n2 > n1" {
     const comps = xs[0].init_computations(r, &xs);
     const reflectance = comps.schlick();
     try floats.expectEqual(0.48873, reflectance);
+}
+
+test "An intersection can encapsulate `u` and `v`" {
+    const s = Object.triangle(Tuple.point(0, 1, 0), Tuple.point(-1, 0, 0), Tuple.point(1, 0, 0));
+    const i = Intersection.init_with_uv(3.5, &s, 0.2, 0.4);
+    try floats.expectEqual(0.2, i.u);
+    try floats.expectEqual(0.4, i.v);
 }
