@@ -82,6 +82,12 @@ test default {
     try std.testing.expectEqual(s2, w.objects.items[1]);
 }
 
+pub fn prepare(self: *World) void {
+    for (self.objects.items) |*object| {
+        object.prepare();
+    }
+}
+
 pub fn intersect(w: World, r: Ray, buf: []Intersection) []Intersection {
     var count: usize = 0;
     for (w.objects.items) |*object| {

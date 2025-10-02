@@ -100,6 +100,8 @@ test "Constructing a ray when the camera is transformed" {
 }
 
 pub fn render(self: Camera, w: World, allocator: std.mem.Allocator) Canvas {
+    var world = w;
+    world.prepare();
     var image = Canvas.init(allocator, self.hsize, self.vsize);
     var progress = std.Progress.start(.{
         .root_name = "Rendering",
@@ -109,7 +111,7 @@ pub fn render(self: Camera, w: World, allocator: std.mem.Allocator) Canvas {
     for (0..self.vsize) |y| {
         for (0..self.hsize) |x| {
             const ray = ray_for_pixel(self, x, y);
-            const color = w.color_at(ray, self.reflection_depth);
+            const color = world.color_at(ray, self.reflection_depth);
             image.write_pixel(x, y, color);
             progress.completeOne();
         }

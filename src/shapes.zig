@@ -1,9 +1,12 @@
+const std = @import("std");
 const Cone = @import("shapes/Cone.zig");
 const Cube = @import("shapes/Cube.zig");
 const Cylinder = @import("shapes/Cylinder.zig");
 const floats = @import("floats.zig");
 const Float = floats.Float;
+pub const Group = @import("shapes/Group.zig");
 const Intersection = @import("Intersection.zig");
+const Matrix = @import("Matrix.zig");
 const Object = @import("Object.zig");
 const Plane = @import("shapes/Plane.zig");
 const Ray = @import("Ray.zig");
@@ -14,6 +17,7 @@ pub const Shape = union(enum) {
     cone: Cone,
     cube: Cube,
     cylinder: Cylinder,
+    group: Group,
     plane: Plane,
     sphere: Sphere,
 
@@ -25,6 +29,9 @@ pub const Shape = union(enum) {
     }
     pub fn _cube() Shape {
         return Shape{ .cube = Cube.init() };
+    }
+    pub fn _group(allocator: std.mem.Allocator) Shape {
+        return Shape{ .group = Group.init(allocator) };
     }
     pub fn _plane() Shape {
         return Shape{ .plane = Plane.init() };
@@ -38,6 +45,13 @@ pub const Shape = union(enum) {
             .cone => |c| return Shape{ .cone = c.truncate(minimum, maximum, is_closed) },
             .cylinder => |c| return Shape{ .cylinder = c.truncate(minimum, maximum, is_closed) },
             else => @panic("Cannot truncate shape"),
+        }
+    }
+
+    pub fn prepare(self: *Shape, world_to_object: Matrix, object_to_world: Matrix) void {
+        switch (self.*) {
+            .group => |*g| g.prepare(world_to_object, object_to_world),
+            else => {},
         }
     }
 

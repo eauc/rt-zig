@@ -6,7 +6,8 @@ const Material = @import("Material.zig");
 const Matrix = @import("Matrix.zig");
 const Object = @This();
 const Ray = @import("Ray.zig");
-const Shape = @import("shapes.zig").Shape;
+const shapes = @import("shapes.zig");
+const Shape = shapes.Shape;
 const transformations = @import("transformations.zig");
 const Tuple = @import("Tuple.zig");
 
@@ -14,14 +15,16 @@ material: Material,
 shape: Shape,
 transform: Matrix,
 transform_inverse: Matrix,
-transform_inverse_transpose: Matrix,
+world_to_object: Matrix,
+object_to_world: Matrix,
 
 fn init(shape: Shape) Object {
     return Object{
         .material = Material.init(),
         .transform = Matrix.identity(),
         .transform_inverse = Matrix.identity(),
-        .transform_inverse_transpose = Matrix.identity(),
+        .world_to_object = Matrix.identity(),
+        .object_to_world = Matrix.identity(),
         .shape = shape,
     };
 }
@@ -35,11 +38,18 @@ pub fn cube() Object {
 pub fn cylinder() Object {
     return init(Shape._cylinder());
 }
+pub fn group(allocator: std.mem.Allocator) Object {
+    return init(Shape._group(allocator));
+}
 pub fn plane() Object {
     return init(Shape._plane());
 }
 pub fn sphere() Object {
     return init(Shape._sphere());
+}
+
+pub fn as_group(self: *Object) *shapes.Group {
+    return &self.shape.group;
 }
 
 pub fn made_of_glass(self: Object) Object {
@@ -48,7 +58,8 @@ pub fn made_of_glass(self: Object) Object {
         .shape = self.shape,
         .transform = self.transform,
         .transform_inverse = self.transform_inverse,
-        .transform_inverse_transpose = self.transform_inverse_transpose,
+        .world_to_object = self.world_to_object,
+        .object_to_world = self.object_to_world,
     };
 }
 
@@ -58,7 +69,8 @@ pub fn truncate(self: Object, minimum: Float, maximum: Float, is_closed: bool) O
         .shape = self.shape.truncate(minimum, maximum, is_closed),
         .transform = self.transform,
         .transform_inverse = self.transform_inverse,
-        .transform_inverse_transpose = self.transform_inverse_transpose,
+        .world_to_object = self.world_to_object,
+        .object_to_world = self.object_to_world,
     };
 }
 
@@ -69,8 +81,13 @@ pub fn with_transform(self: Object, transform: Matrix) Object {
         .shape = self.shape,
         .transform = transform,
         .transform_inverse = transform_inverse,
-        .transform_inverse_transpose = transform_inverse.transpose(),
+        .world_to_object = transform_inverse,
+        .object_to_world = transform_inverse.transpose(),
     };
+}
+
+pub fn prepare(self: *Object) void {
+    self.shape.prepare(self.world_to_object, self.object_to_world);
 }
 
 test "A object has a default transformation" {
@@ -134,9 +151,9 @@ test "Intersecting a translated sphere with a ray" {
 }
 
 pub fn normal_at(self: Object, world_point: Tuple) Tuple {
-    const local_point = self.transform_inverse.mult(world_point);
+    const local_point = self.world_to_object.mult(world_point);
     const local_normal = self.shape.local_normal_at(local_point);
-    var world_normal = self.transform_inverse_transpose.mult(local_normal);
+    var world_normal = self.object_to_world.mult(local_normal);
     world_normal.to_vector();
     return world_normal.normalize();
 }
@@ -157,4 +174,53 @@ test "Computing the normal on a transformed sphere" {
     var s = Object.sphere().with_transform(transformations.scaling(1, 0.5, 1).mul(transformations.rotation_z(floats.pi / 5)));
     const n = s.normal_at(Tuple.point(0, floats.sqrt2 / 2, -floats.sqrt2 / 2));
     try Tuple.expectEqual(Tuple.vector(0, 0.97014, -0.24254), n);
+}
+
+test "Converting a point from world to object space" {
+    const allocator = std.testing.allocator;
+
+    var g2 = Object.group(allocator).with_transform(transformations.scaling(2, 2, 2));
+    defer g2.as_group().deinit();
+    const s = g2.as_group().add_child(Object.sphere().with_transform(transformations.translation(5, 0, 0)));
+
+    var g1 = Object.group(allocator).with_transform(transformations.rotation_y(std.math.pi / 2.0));
+    defer g1.as_group().deinit();
+    _ = g1.as_group().add_child(g2);
+
+    g1.prepare();
+    const p = s.world_to_object.mult(Tuple.point(-2, 0, -10));
+    try Tuple.expectEqual(Tuple.point(0, 0, -1), p);
+}
+
+test "Converting a normal from object to world space" {
+    const allocator = std.testing.allocator;
+
+    var g2 = Object.group(allocator).with_transform(transformations.scaling(1, 2, 3));
+    defer g2.as_group().deinit();
+    const s = g2.as_group().add_child(Object.sphere().with_transform(transformations.translation(5, 0, 0)));
+
+    var g1 = Object.group(allocator).with_transform(transformations.rotation_y(std.math.pi / 2.0));
+    defer g1.as_group().deinit();
+    _ = g1.as_group().add_child(g2);
+
+    g1.prepare();
+    var n = s.object_to_world.mult(Tuple.vector(floats.sqrt3 / 3, floats.sqrt3 / 3, floats.sqrt3 / 3));
+    n.to_vector();
+    try Tuple.expectEqual(Tuple.vector(0.28571, 0.42857, -0.85714), n.normalize());
+}
+
+test "Finding the normal on a child object" {
+    const allocator = std.testing.allocator;
+
+    var g2 = Object.group(allocator).with_transform(transformations.scaling(1, 2, 3));
+    defer g2.as_group().deinit();
+    var s = g2.as_group().add_child(Object.sphere().with_transform(transformations.translation(5, 0, 0)));
+
+    var g1 = Object.group(allocator).with_transform(transformations.rotation_y(std.math.pi / 2.0));
+    defer g1.as_group().deinit();
+    _ = g1.as_group().add_child(g2);
+
+    g1.prepare();
+    const n = s.normal_at(Tuple.point(1.7321, 1.1547, -5.5774));
+    try Tuple.expectEqual(Tuple.vector(0.2857, 0.42854, -0.85716), n);
 }
