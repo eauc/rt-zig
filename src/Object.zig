@@ -50,6 +50,9 @@ pub fn plane() Object {
 pub fn sphere() Object {
     return init(Shape._sphere());
 }
+pub fn triangle(p1: Tuple, p2: Tuple, p3: Tuple) Object {
+    return init(Shape._triangle(p1, p2, p3));
+}
 
 pub fn as_group(self: *Object) *shapes.Group {
     return &self.shape.group;

@@ -12,6 +12,7 @@ const Object = @import("Object.zig");
 const Plane = @import("shapes/Plane.zig");
 const Ray = @import("Ray.zig");
 const Sphere = @import("shapes/Sphere.zig");
+const Triangle = @import("shapes/Triangle.zig");
 const Tuple = @import("Tuple.zig");
 
 pub const Shape = union(enum) {
@@ -21,6 +22,7 @@ pub const Shape = union(enum) {
     group: Group,
     plane: Plane,
     sphere: Sphere,
+    triangle: Triangle,
 
     pub fn _cone() Shape {
         return Shape{ .cone = Cone.init() };
@@ -39,6 +41,9 @@ pub const Shape = union(enum) {
     }
     pub fn _sphere() Shape {
         return Shape{ .sphere = Sphere.init() };
+    }
+    pub fn _triangle(p1: Tuple, p2: Tuple, p3: Tuple) Shape {
+        return Shape{ .triangle = Triangle.init(p1, p2, p3) };
     }
 
     pub fn truncate(self: Shape, minimum: Float, maximum: Float, is_closed: bool) Shape {
@@ -62,6 +67,7 @@ pub const Shape = union(enum) {
             .cylinder => |*c| c.prepare_bounding_box(),
             .group => |*g| g.prepare_bounding_box(),
             .plane => |*p| p.prepare_bounding_box(),
+            .triangle => |*t| t.prepare_bounding_box(),
             inline else => BoundingBox.default(),
         };
     }
