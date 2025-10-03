@@ -93,6 +93,11 @@ pub fn build(b: *std.Build) void {
             .desc = "Example: teapot OBJ file",
             .path = "examples/teapot_obj.zig",
         },
+        .{
+            .name = "csg",
+            .desc = "Example: csg",
+            .path = "examples/csg.zig",
+        },
     };
 
     for (examples) |example| {
@@ -108,14 +113,11 @@ pub fn build(b: *std.Build) void {
             .name = example.name,
             .root_module = root_mod,
         });
-        b.installArtifact(exe);
+        const run_cmd = b.addRunArtifact(exe);
 
         const run_step = b.step(example.name, example.desc);
-
-        const run_cmd = b.addRunArtifact(exe);
         run_step.dependOn(&run_cmd.step);
-        examples_step.dependOn(&run_cmd.step);
 
-        run_cmd.step.dependOn(b.getInstallStep());
+        examples_step.dependOn(&run_cmd.step);
     }
 }

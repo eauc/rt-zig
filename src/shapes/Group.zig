@@ -30,6 +30,15 @@ pub fn is_empty(self: Group) bool {
     return self.children.items.len == 0;
 }
 
+pub fn includes(self: *const Group, other: *const Object) bool {
+    for (self.children.items) |*child| {
+        if (child.includes(other)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 test "Creating a new group" {
     const allocator = std.testing.allocator;
     var g = Object.group(allocator);

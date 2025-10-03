@@ -1,6 +1,7 @@
 const std = @import("std");
 const BoundingBox = @import("BoundingBox.zig");
 const Cone = @import("shapes/Cone.zig");
+pub const CSG = @import("shapes/CSG.zig");
 const Cube = @import("shapes/Cube.zig");
 const Cylinder = @import("shapes/Cylinder.zig");
 const floats = @import("floats.zig");
@@ -18,6 +19,7 @@ const Tuple = @import("Tuple.zig");
 
 pub const Shape = union(enum) {
     cone: Cone,
+    csg: CSG,
     cube: Cube,
     cylinder: Cylinder,
     group: Group,
@@ -29,11 +31,14 @@ pub const Shape = union(enum) {
     pub fn _cone() Shape {
         return Shape{ .cone = Cone.init() };
     }
-    pub fn _cylinder() Shape {
-        return Shape{ .cylinder = Cylinder.init() };
+    pub fn _csg(allocator: std.mem.Allocator, op: CSG.Operation, l: Object, r: Object) Shape {
+        return Shape{ .csg = CSG.init(allocator, op, l, r) };
     }
     pub fn _cube() Shape {
         return Shape{ .cube = Cube.init() };
+    }
+    pub fn _cylinder() Shape {
+        return Shape{ .cylinder = Cylinder.init() };
     }
     pub fn _group(allocator: std.mem.Allocator) Shape {
         return Shape{ .group = Group.init(allocator) };
@@ -53,6 +58,7 @@ pub const Shape = union(enum) {
 
     pub fn deinit(self: *Shape) void {
         switch (self.*) {
+            .csg => |*c| c.deinit(),
             .group => |*g| g.deinit(),
             else => {},
         }
@@ -64,6 +70,14 @@ pub const Shape = union(enum) {
             .cylinder => |c| return Shape{ .cylinder = c.truncate(minimum, maximum, is_closed) },
             else => @panic("Cannot truncate shape"),
         }
+    }
+
+    pub fn includes(self: *const Shape, other: *const Object) bool {
+        return switch (self.*) {
+            .csg => |*c| c.includes(other),
+            .group => |*g| g.includes(other),
+            else => false,
+        };
     }
 
     pub fn prepare_transform(self: *Shape, world_to_object: Matrix, object_to_world: Matrix) void {

@@ -39,6 +39,9 @@ pub fn deinit(self: *Object) void {
 pub fn cone() Object {
     return init(Shape._cone());
 }
+pub fn csg(allocator: std.mem.Allocator, op: shapes.CSG.Operation, l: Object, r: Object) Object {
+    return init(Shape._csg(allocator, op, l, r));
+}
 pub fn cube() Object {
     return init(Shape._cube());
 }
@@ -61,6 +64,9 @@ pub fn triangle(p1: Tuple, p2: Tuple, p3: Tuple) Object {
     return init(Shape._triangle(p1, p2, p3));
 }
 
+pub fn as_csg(self: *Object) *shapes.CSG {
+    return &self.shape.csg;
+}
 pub fn as_group(self: *Object) *shapes.Group {
     return &self.shape.group;
 }
@@ -95,6 +101,18 @@ pub fn truncate(self: Object, minimum: Float, maximum: Float, is_closed: bool) O
     };
 }
 
+pub fn with_material(self: Object, material: Material) Object {
+    return Object{
+        .material = material,
+        .shape = self.shape,
+        .bounding_box = self.bounding_box,
+        .transform = self.transform,
+        .transform_inverse = self.transform_inverse,
+        .world_to_object = self.world_to_object,
+        .object_to_world = self.object_to_world,
+    };
+}
+
 pub fn with_transform(self: Object, transform: Matrix) Object {
     const transform_inverse = transform.inverse();
     return Object{
@@ -106,6 +124,11 @@ pub fn with_transform(self: Object, transform: Matrix) Object {
         .world_to_object = transform_inverse,
         .object_to_world = transform_inverse.transpose(),
     };
+}
+
+pub fn includes(self: *const Object, other: *const Object) bool {
+    if (self == other) return true;
+    return self.shape.includes(other);
 }
 
 pub fn prepare(self: *Object) void {
