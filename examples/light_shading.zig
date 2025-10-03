@@ -25,6 +25,7 @@ pub fn main() !void {
     });
     defer progress.end();
 
+    std.debug.print("Light shading\n", .{});
     for (0..canvas_pixels) |y| {
         const y_f: rt_zig.floats.Float = @floatFromInt(y);
         const world_y = half - pixel_size * y_f;

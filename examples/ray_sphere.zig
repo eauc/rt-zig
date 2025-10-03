@@ -15,6 +15,8 @@ pub fn main() !void {
     const half = wall_size / 2.0;
     var canvas = rt_zig.Canvas.init(allocator, canvas_pixels, canvas_pixels);
     const shape = rt_zig.Object.sphere();
+
+    std.debug.print("Ray Sphere\n", .{});
     for (0..canvas_pixels) |y| {
         const y_f: rt_zig.floats.Float = @floatFromInt(y);
         const world_y = half - pixel_size * y_f;

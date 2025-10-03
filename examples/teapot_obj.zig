@@ -30,6 +30,7 @@ pub fn main() !void {
         rt_zig.Tuple.vector(0, 0, 1),
     );
 
+    std.debug.print("Teapot low\n", .{});
     const image_low = camera.render(world_low, allocator);
     const ppm_low = image_low.to_ppm(allocator);
     try std.fs.cwd().writeFile(.{
@@ -37,6 +38,7 @@ pub fn main() !void {
         .data = ppm_low,
     });
 
+    std.debug.print("Teapot\n", .{});
     const image = camera.render(world, allocator);
     const ppm = image.to_ppm(allocator);
     try std.fs.cwd().writeFile(.{

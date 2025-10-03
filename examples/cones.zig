@@ -19,7 +19,7 @@ pub fn main() !void {
 
     var middle = rt_zig.Object.cone()
         .truncate(1, 2, true)
-        .with_transform(translation(0, -0.5, 0));
+        .with_transform(translation(1, 2, -1).mul(rotation_z(rt_zig.floats.pi / 2)));
     middle.material.color = rt_zig.Color.init(0.1, 1, 0.5);
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
@@ -42,7 +42,7 @@ pub fn main() !void {
     left.material.reflective = 0.3;
 
     var world = rt_zig.World.init(allocator);
-    world.add_light(rt_zig.Light.point(rt_zig.Tuple.point(15, 2.2, 15), rt_zig.Color.WHITE));
+    world.add_light(rt_zig.Light.point(rt_zig.Tuple.point(15, 15, 15), rt_zig.Color.WHITE));
     world.add_object(floor);
     world.add_object(middle);
     world.add_object(right);
@@ -55,6 +55,7 @@ pub fn main() !void {
         rt_zig.Tuple.vector(0, 1, 0),
     );
 
+    std.debug.print("Cones\n", .{});
     const image = camera.render(world, allocator);
     const ppm = image.to_ppm(allocator);
 

@@ -52,6 +52,7 @@ pub fn main() !void {
         rt_zig.Tuple.vector(0, 1, 0),
     );
 
+    std.debug.print("Cubes\n", .{});
     const image = camera.render(world, allocator);
     const ppm = image.to_ppm(allocator);
 
