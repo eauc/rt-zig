@@ -123,6 +123,11 @@ pub fn build(b: *std.Build) void {
             .desc = "Example: blur effect",
             .path = "examples/blur.zig",
         },
+        .{
+            .name = "cover",
+            .desc = "Example: cover",
+            .path = "examples/cover.zig",
+        },
     };
 
     for (examples) |example| {
