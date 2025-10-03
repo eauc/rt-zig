@@ -120,6 +120,8 @@ test "Constructing a ray when the camera is transformed" {
     try Tuple.expectEqual(Tuple.vector(floats.sqrt2 / 2, 0, -floats.sqrt2 / 2), rs[0].direction);
 }
 
+const THREAD_COUNT = 8;
+
 pub fn render(self: Camera, w: World, allocator: std.mem.Allocator) Canvas {
     var world = w;
     world.prepare();
@@ -129,22 +131,49 @@ pub fn render(self: Camera, w: World, allocator: std.mem.Allocator) Canvas {
         .estimated_total_items = self.vsize * self.hsize,
         .initial_delay_ns = 0,
     });
-    for (0..self.vsize) |y| {
-        for (0..self.hsize) |x| {
-            var buf = [_]Ray{undefined} ** 32;
-            const rays = rays_for_pixel(self, x, y, &buf);
-            var color = Color.BLACK;
-            for (rays) |ray| {
-                color = color.add(world.color_at(ray, self.reflection_depth));
-            }
-            const scale: Float = @floatFromInt(rays.len);
-            color = color.muls(1 / scale);
-            image.write_pixel(x, y, color);
-            progress.completeOne();
-        }
+    const chunk_size = self.vsize / THREAD_COUNT;
+    var threads = [_]std.Thread{undefined} ** THREAD_COUNT;
+    for (0..threads.len) |i| {
+        threads[i] = std.Thread.spawn(.{}, _render, .{RenderParams{
+            .camera = &self,
+            .world = &world,
+            .image = &image,
+            .progress = &progress,
+            .start = i * chunk_size,
+            .chunk_size = chunk_size,
+        }}) catch unreachable;
+    }
+    for (threads) |thread| {
+        thread.join();
     }
     progress.end();
     return image;
+}
+
+const RenderParams = struct {
+    camera: *const Camera,
+    world: *const World,
+    image: *Canvas,
+    progress: *std.Progress.Node,
+    start: usize,
+    chunk_size: usize,
+};
+
+fn _render(args: RenderParams) void {
+    for (args.start..args.start + args.chunk_size) |y| {
+        for (0..args.camera.hsize) |x| {
+            var buf = [_]Ray{undefined} ** 32;
+            const rays = args.camera.rays_for_pixel(x, y, &buf);
+            var color = Color.BLACK;
+            for (rays) |ray| {
+                color = color.add(args.world.color_at(ray, args.camera.reflection_depth));
+            }
+            const scale: Float = @floatFromInt(rays.len);
+            color = color.muls(1 / scale);
+            args.image.write_pixel(x, y, color);
+            args.progress.completeOne();
+        }
+    }
 }
 
 test "Rendering a world with a camera" {
