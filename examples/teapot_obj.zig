@@ -16,11 +16,11 @@ pub fn main() !void {
     const obj_file = try rt_zig.ObjFile.parse_file(allocator, "examples/teapot.obj");
 
     var world_low = rt_zig.World.init(allocator);
-    world_low.add_light(rt_zig.PointLight.init(rt_zig.Tuple.point(50, 50, 50), rt_zig.Color.WHITE));
+    world_low.add_light(rt_zig.Light.point(rt_zig.Tuple.point(50, 50, 50), rt_zig.Color.WHITE));
     world_low.add_object(obj_file_low.default_group);
 
     var world = rt_zig.World.init(allocator);
-    world.add_light(rt_zig.PointLight.init(rt_zig.Tuple.point(50, 50, 50), rt_zig.Color.WHITE));
+    world.add_light(rt_zig.Light.point(rt_zig.Tuple.point(50, 50, 50), rt_zig.Color.WHITE));
     world.add_object(obj_file.default_group);
 
     var camera = rt_zig.Camera.init(1000, 800, std.math.pi / 3.0);

@@ -5,7 +5,7 @@ const Float = floats.Float;
 const Material = @This();
 const Object = @import("Object.zig");
 const Pattern = @import("Pattern.zig");
-const PointLight = @import("Light.zig");
+const Light = @import("Light.zig");
 const Tuple = @import("Tuple.zig");
 
 pattern: ?Pattern,
@@ -67,7 +67,7 @@ test "Glass" {
 }
 
 /// Calculate the lighting for a given material, light, and position
-pub fn lighting(m: Material, object: Object, ambient_light: Color, lights: []const PointLight, point: Tuple, eyev: Tuple, normalv: Tuple) Color {
+pub fn lighting(m: Material, object: Object, ambient_light: Color, lights: []const Light, point: Tuple, eyev: Tuple, normalv: Tuple) Color {
     var color = m.color;
     if (m.pattern) |pattern| {
         color = pattern.color_at(object, point);
@@ -101,9 +101,9 @@ test "Lighting with the eye between the light and the surface" {
     const position = Tuple.point(0, 0, 0);
     const eyev = Tuple.vector(0, 0, -1);
     const normalv = Tuple.vector(0, 0, -1);
-    const light = PointLight.init(Tuple.point(0, 0, -10), Color.WHITE);
+    const light = Light.point(Tuple.point(0, 0, -10), Color.WHITE);
     const object = Object.sphere();
-    const result = m.lighting(object, Color.WHITE, &[_]PointLight{light}, position, eyev, normalv);
+    const result = m.lighting(object, Color.WHITE, &[_]Light{light}, position, eyev, normalv);
     try Color.expectEqual(Color.init(1.9, 1.9, 1.9), result);
 }
 
@@ -112,9 +112,9 @@ test "Lighting with the eye between light and surface, eye offset 45°" {
     const position = Tuple.point(0, 0, 0);
     const eyev = Tuple.vector(0, floats.sqrt2 / 2, -floats.sqrt2 / 2);
     const normalv = Tuple.vector(0, 0, -1);
-    const light = PointLight.init(Tuple.point(0, 0, -10), Color.init(1, 1, 1));
+    const light = Light.point(Tuple.point(0, 0, -10), Color.init(1, 1, 1));
     const object = Object.sphere();
-    const result = m.lighting(object, Color.WHITE, &[_]PointLight{light}, position, eyev, normalv);
+    const result = m.lighting(object, Color.WHITE, &[_]Light{light}, position, eyev, normalv);
     try Color.expectEqual(Color.init(1.0, 1.0, 1.0), result);
 }
 
@@ -123,9 +123,9 @@ test "Lighting with eye opposite surface, light offset 45°" {
     const position = Tuple.point(0, 0, 0);
     const eyev = Tuple.vector(0, 0, -1);
     const normalv = Tuple.vector(0, 0, -1);
-    const light = PointLight.init(Tuple.point(0, 10, -10), Color.init(1, 1, 1));
+    const light = Light.point(Tuple.point(0, 10, -10), Color.init(1, 1, 1));
     const object = Object.sphere();
-    const result = m.lighting(object, Color.WHITE, &[_]PointLight{light}, position, eyev, normalv);
+    const result = m.lighting(object, Color.WHITE, &[_]Light{light}, position, eyev, normalv);
     try Color.expectEqual(Color.init(0.7364, 0.7364, 0.7364), result);
 }
 
@@ -134,9 +134,9 @@ test "Lighting with eye in the path of the reflection vector" {
     const position = Tuple.point(0, 0, 0);
     const eyev = Tuple.vector(0, -floats.sqrt2 / 2, -floats.sqrt2 / 2);
     const normalv = Tuple.vector(0, 0, -1);
-    const light = PointLight.init(Tuple.point(0, 10, -10), Color.init(1, 1, 1));
+    const light = Light.point(Tuple.point(0, 10, -10), Color.init(1, 1, 1));
     const object = Object.sphere();
-    const result = m.lighting(object, Color.WHITE, &[_]PointLight{light}, position, eyev, normalv);
+    const result = m.lighting(object, Color.WHITE, &[_]Light{light}, position, eyev, normalv);
     try Color.expectEqual(Color.init(1.63638, 1.63638, 1.63638), result);
 }
 
@@ -145,9 +145,9 @@ test "Lighting with the light behind the surface" {
     const position = Tuple.point(0, 0, 0);
     const eyev = Tuple.vector(0, 0, -1);
     const normalv = Tuple.vector(0, 0, -1);
-    const light = PointLight.init(Tuple.point(0, 0, 10), Color.init(1, 1, 1));
+    const light = Light.point(Tuple.point(0, 0, 10), Color.init(1, 1, 1));
     const object = Object.sphere();
-    const result = m.lighting(object, Color.WHITE, &[_]PointLight{light}, position, eyev, normalv);
+    const result = m.lighting(object, Color.WHITE, &[_]Light{light}, position, eyev, normalv);
     try Color.expectEqual(Color.init(0.1, 0.1, 0.1), result);
 }
 
@@ -157,9 +157,9 @@ test "Lighting with the surface in shadow" {
     const eyev = Tuple.vector(0, 0, -1);
     const normalv = Tuple.vector(0, 0, -1);
     // when in shadow, light intensity is BLACK
-    const light = PointLight.init(Tuple.point(0, 0, -10), Color.BLACK);
+    const light = Light.point(Tuple.point(0, 0, -10), Color.BLACK);
     const object = Object.sphere();
-    const result = m.lighting(object, Color.WHITE, &[_]PointLight{light}, position, eyev, normalv);
+    const result = m.lighting(object, Color.WHITE, &[_]Light{light}, position, eyev, normalv);
     try Color.expectEqual(Color.init(0.1, 0.1, 0.1), result);
 }
 
@@ -171,10 +171,10 @@ test "Lighting with a pattern applied" {
     m.specular = 0;
     const eyev = Tuple.vector(0, 0, -1);
     const normalv = Tuple.vector(0, 0, -1);
-    const light = PointLight.init(Tuple.point(0, 0, -10), Color.WHITE);
+    const light = Light.point(Tuple.point(0, 0, -10), Color.WHITE);
     const object = Object.sphere();
-    const c1 = m.lighting(object, Color.WHITE, &[_]PointLight{light}, Tuple.point(0.9, 0, 0), eyev, normalv);
-    const c2 = m.lighting(object, Color.WHITE, &[_]PointLight{light}, Tuple.point(1.1, 0, 0), eyev, normalv);
+    const c1 = m.lighting(object, Color.WHITE, &[_]Light{light}, Tuple.point(0.9, 0, 0), eyev, normalv);
+    const c2 = m.lighting(object, Color.WHITE, &[_]Light{light}, Tuple.point(1.1, 0, 0), eyev, normalv);
     try Color.expectEqual(Color.WHITE, c1);
     try Color.expectEqual(Color.BLACK, c2);
 }

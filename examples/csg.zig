@@ -42,7 +42,7 @@ pub fn main() !void {
     );
 
     var world = rt_zig.World.init(allocator);
-    world.add_light(rt_zig.PointLight.init(rt_zig.Tuple.point(15, 15, 5), rt_zig.Color.WHITE));
+    world.add_light(rt_zig.Light.point(rt_zig.Tuple.point(15, 15, 5), rt_zig.Color.WHITE));
     world.add_object(csg);
 
     var camera = rt_zig.Camera.init(800, 600, std.math.pi / 3.0);

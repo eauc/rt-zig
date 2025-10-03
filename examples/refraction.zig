@@ -27,7 +27,7 @@ pub fn main() !void {
     sphere.material.refractive_index = 1.5;
 
     var world = rt_zig.World.init(allocator);
-    world.add_light(rt_zig.PointLight.init(rt_zig.Tuple.point(5, 10, 5), rt_zig.Color.WHITE));
+    world.add_light(rt_zig.Light.point(rt_zig.Tuple.point(5, 10, 5), rt_zig.Color.WHITE));
     world.add_object(floor);
     world.add_object(sphere);
 

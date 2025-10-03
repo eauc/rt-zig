@@ -103,6 +103,21 @@ pub fn build(b: *std.Build) void {
             .desc = "Example: lights",
             .path = "examples/lights.zig",
         },
+        .{
+            .name = "cube_light",
+            .desc = "Example: cube light",
+            .path = "examples/cube_light.zig",
+        },
+        .{
+            .name = "sphere_light",
+            .desc = "Example: sphere light",
+            .path = "examples/sphere_light.zig",
+        },
+        .{
+            .name = "spot_light",
+            .desc = "Example: spot light",
+            .path = "examples/spot_light.zig",
+        },
     };
 
     for (examples) |example| {

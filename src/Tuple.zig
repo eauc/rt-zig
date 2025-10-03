@@ -51,6 +51,13 @@ pub fn to_vector(self: *Tuple) void {
     self.w = 0.0;
 }
 
+pub fn random_vector(mag: Float) Tuple {
+    const dx = floats.random(2 * mag) - mag;
+    const dy = floats.random(2 * mag) - mag;
+    const dz = floats.random(2 * mag) - mag;
+    return vector(dx, dy, dz);
+}
+
 test vector {
     const tuple = vector(4.3, -4.2, 3.1);
     try std.testing.expectEqual(4.3, tuple.x);

@@ -16,7 +16,7 @@ pub fn main() !void {
     var canvas = rt_zig.Canvas.init(allocator, canvas_pixels, canvas_pixels);
     var shape = rt_zig.Object.sphere();
     shape.material.color = rt_zig.Color.init(1, 0.2, 1);
-    const light = rt_zig.PointLight.init(rt_zig.Tuple.point(-10, 10, -10), rt_zig.Color.WHITE);
+    const light = rt_zig.Light.point(rt_zig.Tuple.point(-10, 10, -10), rt_zig.Color.WHITE);
 
     const progress = std.Progress.start(.{
         .root_name = "rendering",
@@ -41,7 +41,7 @@ pub fn main() !void {
                 const point = r.position(hit.t);
                 const normal = shape.normal_at(point, hit);
                 const eyev = r.direction.neg();
-                const color = shape.material.lighting(shape, light, point, eyev, normal, false);
+                const color = shape.material.lighting(shape, rt_zig.Color.WHITE, &[_]rt_zig.Light{light}, point, eyev, normal);
                 canvas.write_pixel(x, y, color);
             }
             progress.completeOne();

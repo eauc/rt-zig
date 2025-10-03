@@ -39,7 +39,7 @@ pub fn main() !void {
     left.material.reflective = 0.9;
 
     var world = rt_zig.World.init(allocator);
-    world.add_light(rt_zig.PointLight.init(rt_zig.Tuple.point(-10, 10, -10), rt_zig.Color.WHITE));
+    world.add_light(rt_zig.Light.point(rt_zig.Tuple.point(-10, 10, -10), rt_zig.Color.WHITE));
     world.add_object(floor);
     world.add_object(middle);
     world.add_object(right);

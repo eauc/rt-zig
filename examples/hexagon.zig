@@ -15,7 +15,7 @@ pub fn main() !void {
     const hex = hexagon(allocator);
 
     var world = rt_zig.World.init(allocator);
-    world.add_light(rt_zig.PointLight.init(rt_zig.Tuple.point(15, 15, 15), rt_zig.Color.init(1, 0.2, 1)));
+    world.add_light(rt_zig.Light.point(rt_zig.Tuple.point(15, 15, 15), rt_zig.Color.init(1, 0.2, 1)));
     world.add_object(hex);
 
     var camera = rt_zig.Camera.init(800, 600, std.math.pi / 3.0);

@@ -19,9 +19,27 @@ pub fn main() !void {
         .with_transform(translation(0, 1, 0));
 
     var world = rt_zig.World.init(allocator);
-    world.add_light(rt_zig.PointLight.init(rt_zig.Tuple.point(7, 10, -10), rt_zig.Color.RED));
-    world.add_light(rt_zig.PointLight.init(rt_zig.Tuple.point(5, 10, 0), rt_zig.Color.GREEN));
-    world.add_light(rt_zig.PointLight.init(rt_zig.Tuple.point(7, 10, 10), rt_zig.Color.BLUE));
+    world.add_light(rt_zig.Light.spot(
+        rt_zig.Tuple.point(5, 7, -7),
+        rt_zig.Color.RED,
+        rt_zig.Tuple.vector(0, 0, 0).sub(rt_zig.Tuple.point(5, 7, -7)),
+        std.math.pi / 8.0,
+        0.5,
+    ));
+    world.add_light(rt_zig.Light.spot(
+        rt_zig.Tuple.point(5, 7, 0),
+        rt_zig.Color.GREEN,
+        rt_zig.Tuple.vector(0, 0, 0).sub(rt_zig.Tuple.point(5, 7, 0)),
+        std.math.pi / 8.0,
+        0.5,
+    ));
+    world.add_light(rt_zig.Light.spot(
+        rt_zig.Tuple.point(5, 7, 7),
+        rt_zig.Color.BLUE,
+        rt_zig.Tuple.vector(0, 0, 0).sub(rt_zig.Tuple.point(5, 7, 7)),
+        std.math.pi / 8.0,
+        0.5,
+    ));
     world.add_object(floor);
     world.add_object(sphere);
 
