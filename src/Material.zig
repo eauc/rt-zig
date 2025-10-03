@@ -67,26 +67,30 @@ test "Glass" {
 }
 
 /// Calculate the lighting for a given material, light, and position
-pub fn lighting(m: Material, object: Object, light: PointLight, point: Tuple, eyev: Tuple, normalv: Tuple, in_shadow: bool) Color {
+pub fn lighting(m: Material, object: Object, ambient_light: Color, lights: []const PointLight, point: Tuple, eyev: Tuple, normalv: Tuple) Color {
     var color = m.color;
     if (m.pattern) |pattern| {
         color = pattern.color_at(object, point);
     }
-    const effective_color = color.mul(light.intensity);
-    const lightv = light.position.sub(point).normalize();
+    var effective_color = color.mul(ambient_light);
     const ambient = effective_color.muls(m.ambient);
-    if (in_shadow) return ambient;
 
-    const light_dot_normal = lightv.dot(normalv);
     var diffuse: Color = Color.BLACK;
     var specular: Color = Color.BLACK;
-    if (light_dot_normal > 0) {
-        diffuse = effective_color.muls(m.diffuse).muls(light_dot_normal);
-        const reflectv = lightv.neg().reflect(normalv);
-        const reflect_dot_eye = reflectv.dot(eyev);
-        if (reflect_dot_eye > 0) {
-            const factor = std.math.pow(Float, reflect_dot_eye, m.shininess);
-            specular = light.intensity.muls(m.specular).muls(factor);
+    for (lights) |light| {
+        if (light.intensity.equal(Color.BLACK)) continue;
+
+        effective_color = color.mul(light.intensity);
+        const lightv = light.position.sub(point).normalize();
+        const light_dot_normal = lightv.dot(normalv);
+        if (light_dot_normal > 0) {
+            diffuse = diffuse.add(effective_color.muls(m.diffuse).muls(light_dot_normal));
+            const reflectv = lightv.neg().reflect(normalv);
+            const reflect_dot_eye = reflectv.dot(eyev);
+            if (reflect_dot_eye > 0) {
+                const factor = std.math.pow(Float, reflect_dot_eye, m.shininess);
+                specular = specular.add(light.intensity.muls(m.specular).muls(factor));
+            }
         }
     }
     return ambient.add(diffuse).add(specular);
@@ -99,7 +103,7 @@ test "Lighting with the eye between the light and the surface" {
     const normalv = Tuple.vector(0, 0, -1);
     const light = PointLight.init(Tuple.point(0, 0, -10), Color.WHITE);
     const object = Object.sphere();
-    const result = m.lighting(object, light, position, eyev, normalv, false);
+    const result = m.lighting(object, Color.WHITE, &[_]PointLight{light}, position, eyev, normalv);
     try Color.expectEqual(Color.init(1.9, 1.9, 1.9), result);
 }
 
@@ -110,7 +114,7 @@ test "Lighting with the eye between light and surface, eye offset 45°" {
     const normalv = Tuple.vector(0, 0, -1);
     const light = PointLight.init(Tuple.point(0, 0, -10), Color.init(1, 1, 1));
     const object = Object.sphere();
-    const result = m.lighting(object, light, position, eyev, normalv, false);
+    const result = m.lighting(object, Color.WHITE, &[_]PointLight{light}, position, eyev, normalv);
     try Color.expectEqual(Color.init(1.0, 1.0, 1.0), result);
 }
 
@@ -121,7 +125,7 @@ test "Lighting with eye opposite surface, light offset 45°" {
     const normalv = Tuple.vector(0, 0, -1);
     const light = PointLight.init(Tuple.point(0, 10, -10), Color.init(1, 1, 1));
     const object = Object.sphere();
-    const result = m.lighting(object, light, position, eyev, normalv, false);
+    const result = m.lighting(object, Color.WHITE, &[_]PointLight{light}, position, eyev, normalv);
     try Color.expectEqual(Color.init(0.7364, 0.7364, 0.7364), result);
 }
 
@@ -132,7 +136,7 @@ test "Lighting with eye in the path of the reflection vector" {
     const normalv = Tuple.vector(0, 0, -1);
     const light = PointLight.init(Tuple.point(0, 10, -10), Color.init(1, 1, 1));
     const object = Object.sphere();
-    const result = m.lighting(object, light, position, eyev, normalv, false);
+    const result = m.lighting(object, Color.WHITE, &[_]PointLight{light}, position, eyev, normalv);
     try Color.expectEqual(Color.init(1.63638, 1.63638, 1.63638), result);
 }
 
@@ -143,7 +147,7 @@ test "Lighting with the light behind the surface" {
     const normalv = Tuple.vector(0, 0, -1);
     const light = PointLight.init(Tuple.point(0, 0, 10), Color.init(1, 1, 1));
     const object = Object.sphere();
-    const result = m.lighting(object, light, position, eyev, normalv, false);
+    const result = m.lighting(object, Color.WHITE, &[_]PointLight{light}, position, eyev, normalv);
     try Color.expectEqual(Color.init(0.1, 0.1, 0.1), result);
 }
 
@@ -152,10 +156,10 @@ test "Lighting with the surface in shadow" {
     const position = Tuple.point(0, 0, 0);
     const eyev = Tuple.vector(0, 0, -1);
     const normalv = Tuple.vector(0, 0, -1);
-    const light = PointLight.init(Tuple.point(0, 0, -10), Color.init(1, 1, 1));
-    const in_shadow = true;
+    // when in shadow, light intensity is BLACK
+    const light = PointLight.init(Tuple.point(0, 0, -10), Color.BLACK);
     const object = Object.sphere();
-    const result = m.lighting(object, light, position, eyev, normalv, in_shadow);
+    const result = m.lighting(object, Color.WHITE, &[_]PointLight{light}, position, eyev, normalv);
     try Color.expectEqual(Color.init(0.1, 0.1, 0.1), result);
 }
 
@@ -169,8 +173,8 @@ test "Lighting with a pattern applied" {
     const normalv = Tuple.vector(0, 0, -1);
     const light = PointLight.init(Tuple.point(0, 0, -10), Color.WHITE);
     const object = Object.sphere();
-    const c1 = m.lighting(object, light, Tuple.point(0.9, 0, 0), eyev, normalv, false);
-    const c2 = m.lighting(object, light, Tuple.point(1.1, 0, 0), eyev, normalv, false);
+    const c1 = m.lighting(object, Color.WHITE, &[_]PointLight{light}, Tuple.point(0.9, 0, 0), eyev, normalv);
+    const c2 = m.lighting(object, Color.WHITE, &[_]PointLight{light}, Tuple.point(1.1, 0, 0), eyev, normalv);
     try Color.expectEqual(Color.WHITE, c1);
     try Color.expectEqual(Color.BLACK, c2);
 }

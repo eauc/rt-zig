@@ -28,6 +28,10 @@ test init {
     try floats.expectEqual(1.7, c.blue);
 }
 
+pub fn equal(a: Color, b: Color) bool {
+    return a.red == b.red and a.green == b.green and a.blue == b.blue;
+}
+
 pub fn expectEqual(a: Color, b: Color) !void {
     try floats.expectEqual(a.red, b.red);
     try floats.expectEqual(a.green, b.green);

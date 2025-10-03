@@ -14,12 +14,14 @@ const World = @This();
 
 allocator: std.mem.Allocator,
 objects: std.ArrayList(Object),
+ambient_light: Color,
 lights: std.ArrayList(PointLight),
 
 pub fn init(allocator: std.mem.Allocator) World {
     return World{
         .allocator = allocator,
         .objects = std.ArrayList(Object){},
+        .ambient_light = Color.WHITE,
         .lights = std.ArrayList(PointLight){},
     };
 }
@@ -116,8 +118,16 @@ test intersect {
 
 /// Shade an intersection
 pub fn shade_hit(self: World, hit: Intersection, comps: Intersection.Computations, depth: usize) Color {
-    const in_shadow = self.is_shadowed(comps.over_point);
-    const surface = hit.object.material.lighting(hit.object.*, self.lights.items[0], comps.over_point, comps.eyev, comps.normalv, in_shadow);
+    var shadowed_lights = [_]PointLight{undefined} ** 10;
+    std.debug.assert(self.lights.items.len <= shadowed_lights.len);
+    for (self.lights.items, 0..) |light, i| {
+        const in_shadow = self.is_shadowed(comps.over_point, light);
+        shadowed_lights[i] = light;
+        if (in_shadow) {
+            shadowed_lights[i].intensity = Color.BLACK;
+        }
+    }
+    const surface = hit.object.material.lighting(hit.object.*, self.ambient_light, shadowed_lights[0..self.lights.items.len], comps.over_point, comps.eyev, comps.normalv);
     const reflected = self.reflected_color(hit, comps, depth);
     const refracted = self.refracted_color(hit, comps, depth);
 
@@ -272,9 +282,9 @@ test "The color with an intersection behind the ray" {
     try Color.expectEqual(w.objects.items[1].material.color, c);
 }
 
-fn is_shadowed(self: World, point: Tuple) bool {
+fn is_shadowed(self: World, point: Tuple, light: PointLight) bool {
     var buf = [_]Intersection{undefined} ** 100;
-    const v = self.lights.items[0].position.sub(point);
+    const v = light.position.sub(point);
     const distance = v.magnitude();
     const direction = v.normalize();
     const ray = Ray.init(point, direction);
@@ -290,7 +300,7 @@ test "There is no shadow when nothing is collinear with point and light" {
     defer w.deinit();
 
     const p = Tuple.point(0, 10, 0);
-    try std.testing.expectEqual(false, w.is_shadowed(p));
+    try std.testing.expectEqual(false, w.is_shadowed(p, w.lights.items[0]));
 }
 
 test "The shadow when an object is between the point and the light" {
@@ -298,7 +308,7 @@ test "The shadow when an object is between the point and the light" {
     defer w.deinit();
 
     const p = Tuple.point(10, -10, 10);
-    try std.testing.expectEqual(true, w.is_shadowed(p));
+    try std.testing.expectEqual(true, w.is_shadowed(p, w.lights.items[0]));
 }
 
 test "There is no shadow when an object is behind the light" {
@@ -306,7 +316,7 @@ test "There is no shadow when an object is behind the light" {
     defer w.deinit();
 
     const p = Tuple.point(-20, 20, -20);
-    try std.testing.expectEqual(false, w.is_shadowed(p));
+    try std.testing.expectEqual(false, w.is_shadowed(p, w.lights.items[0]));
 }
 
 test "There is no shadow when an object is behind the point" {
@@ -314,7 +324,7 @@ test "There is no shadow when an object is behind the point" {
     defer w.deinit();
 
     const p = Tuple.point(-2, 2, -2);
-    try std.testing.expectEqual(false, w.is_shadowed(p));
+    try std.testing.expectEqual(false, w.is_shadowed(p, w.lights.items[0]));
 }
 
 fn reflected_color(self: World, hit: Intersection, comps: Intersection.Computations, depth: usize) Color {
