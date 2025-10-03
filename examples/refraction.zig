@@ -31,7 +31,7 @@ pub fn main() !void {
     world.add_object(floor);
     world.add_object(sphere);
 
-    var camera = rt_zig.Camera.init(1200, 800, std.math.pi / 3.0);
+    var camera = rt_zig.Camera.init(1200, 800, 1, std.math.pi / 3.0);
     camera.transform = view_transform(
         rt_zig.Tuple.point(4, 2, 0),
         rt_zig.Tuple.point(0, 1, 0),

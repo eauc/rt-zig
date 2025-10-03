@@ -60,7 +60,7 @@ pub fn main() !void {
     world.add_object(right);
     world.add_object(left);
 
-    var camera = rt_zig.Camera.init(400, 300, std.math.pi / 3.0);
+    var camera = rt_zig.Camera.init(400, 300, 1, std.math.pi / 3.0);
     camera.transform = view_transform(
         rt_zig.Tuple.point(0, 1.5, -5),
         rt_zig.Tuple.point(0, 1, 0),

@@ -10,6 +10,8 @@ const transformations = @import("transformations.zig");
 const Tuple = @import("Tuple.zig");
 const World = @import("World.zig");
 
+focal_length: Float,
+aperture: Float,
 hsize: usize,
 vsize: usize,
 field_of_view: Float,
@@ -19,13 +21,16 @@ pixel_size: Float,
 transform: Matrix,
 reflection_depth: usize,
 oversampling: usize,
+blur_oversampling: usize,
 
-pub fn init(hsize: usize, vsize: usize, field_of_view: Float) Camera {
-    const half_view = std.math.tan(field_of_view / 2);
+pub fn init(hsize: usize, vsize: usize, focal_length: Float, field_of_view: Float) Camera {
+    const half_view = focal_length * std.math.tan(field_of_view / 2);
     const hsize_f: Float = @floatFromInt(hsize);
     const vsize_f: Float = @floatFromInt(vsize);
     const aspect: Float = hsize_f / vsize_f;
     var c = Camera{
+        .focal_length = focal_length,
+        .aperture = 0,
         .hsize = hsize,
         .vsize = vsize,
         .field_of_view = field_of_view,
@@ -35,6 +40,7 @@ pub fn init(hsize: usize, vsize: usize, field_of_view: Float) Camera {
         .transform = Matrix.identity(),
         .reflection_depth = 5,
         .oversampling = 2,
+        .blur_oversampling = 1,
     };
     if (aspect > 1) {
         c.half_width = half_view;
@@ -48,7 +54,7 @@ pub fn init(hsize: usize, vsize: usize, field_of_view: Float) Camera {
 }
 
 test init {
-    const c = init(160, 120, floats.pi / 2);
+    const c = init(160, 120, 1, floats.pi / 2);
     try std.testing.expectEqual(160, c.hsize);
     try std.testing.expectEqual(120, c.vsize);
     try std.testing.expectEqual(floats.pi / 2, c.field_of_view);
@@ -56,12 +62,12 @@ test init {
 }
 
 test "The pixel size for a horizontal canvas" {
-    const c = init(200, 125, floats.pi / 2);
+    const c = init(200, 125, 1, floats.pi / 2);
     try std.testing.expectEqual(0.01, c.pixel_size);
 }
 
 test "The pixel size for a vertical canvas" {
-    const c = init(125, 200, floats.pi / 2);
+    const c = init(125, 200, 1, floats.pi / 2);
     try std.testing.expectEqual(0.01, c.pixel_size);
 }
 
@@ -80,20 +86,30 @@ pub fn rays_for_pixel(self: Camera, x: usize, y: usize, buf: []Ray) []Ray {
             const j_f: Float = @floatFromInt(j);
             const offset_x = (x_f + start_offset + i_f * offset) * self.pixel_size;
             const offset_y = (y_f + start_offset + j_f * offset) * self.pixel_size;
-            const world_x = self.half_width - offset_x;
-            const world_y = self.half_height - offset_y;
-            const pixel = self.transform.inverse().mult(Tuple.point(world_x, world_y, -1));
-            const origin = self.transform.inverse().mult(Tuple.point(0, 0, 0));
-            const direction = Tuple.normalize(Tuple.sub(pixel, origin));
-            buf[ray_count] = Ray.init(origin, direction);
-            ray_count += 1;
+            const rays = self.rays_for_coordinates(offset_x, offset_y, buf[ray_count..]);
+            ray_count += rays.len;
         }
     }
     return buf[0..ray_count];
 }
 
+fn rays_for_coordinates(self: Camera, offset_x: Float, offset_y: Float, buf: []Ray) []Ray {
+    const world_x = self.half_width - offset_x;
+    const world_y = self.half_height - offset_y;
+    const pixel = self.transform.inverse().mult(Tuple.point(world_x, world_y, -self.focal_length));
+    const aperture = self.focal_length * self.aperture;
+    for (0..self.blur_oversampling) |i| {
+        const dv = if (self.blur_oversampling > 1) Tuple.vector(floats.random(aperture), floats.random(aperture), 0) else Tuple.vector(0, 0, 0);
+        const lens_origin = Tuple.point(0, 0, 0).add(dv);
+        const origin = self.transform.inverse().mult(lens_origin);
+        const direction = Tuple.normalize(Tuple.sub(pixel, origin));
+        buf[i] = Ray.init(origin, direction);
+    }
+    return buf[0..self.blur_oversampling];
+}
+
 test "Constructing a ray through the center of the canvas" {
-    var c = init(201, 101, floats.pi / 2);
+    var c = init(201, 101, 1, floats.pi / 2);
     c.oversampling = 1;
     var buf = [_]Ray{undefined} ** 32;
     const rs = rays_for_pixel(c, 100, 50, &buf);
@@ -102,7 +118,7 @@ test "Constructing a ray through the center of the canvas" {
 }
 
 test "Constructing a ray through a corner of the canvas" {
-    var c = init(201, 101, floats.pi / 2);
+    var c = init(201, 101, 1, floats.pi / 2);
     c.oversampling = 1;
     var buf = [_]Ray{undefined} ** 32;
     const rs = rays_for_pixel(c, 0, 0, &buf);
@@ -111,7 +127,7 @@ test "Constructing a ray through a corner of the canvas" {
 }
 
 test "Constructing a ray when the camera is transformed" {
-    var c = init(201, 101, floats.pi / 2);
+    var c = init(201, 101, 1, floats.pi / 2);
     c.oversampling = 1;
     c.transform = transformations.rotation_y(floats.pi / 4).mul(transformations.translation(0, -2, 5));
     var buf = [_]Ray{undefined} ** 32;
@@ -162,7 +178,7 @@ const RenderParams = struct {
 fn _render(args: RenderParams) void {
     for (args.start..args.start + args.chunk_size) |y| {
         for (0..args.camera.hsize) |x| {
-            var buf = [_]Ray{undefined} ** 32;
+            var buf = [_]Ray{undefined} ** 256;
             const rays = args.camera.rays_for_pixel(x, y, &buf);
             var color = Color.BLACK;
             for (rays) |ray| {
@@ -180,7 +196,7 @@ test "Rendering a world with a camera" {
     var w = World.default(std.testing.allocator);
     defer w.deinit();
 
-    var c = init(11, 11, floats.pi / 2);
+    var c = init(11, 11, 1, floats.pi / 2);
     c.oversampling = 1;
     const from = Tuple.point(0, 0, -5);
     const to = Tuple.point(0, 0, 0);

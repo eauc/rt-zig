@@ -118,6 +118,11 @@ pub fn build(b: *std.Build) void {
             .desc = "Example: spot light",
             .path = "examples/spot_light.zig",
         },
+        .{
+            .name = "blur",
+            .desc = "Example: blur effect",
+            .path = "examples/blur.zig",
+        },
     };
 
     for (examples) |example| {

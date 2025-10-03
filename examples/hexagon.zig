@@ -18,7 +18,7 @@ pub fn main() !void {
     world.add_light(rt_zig.Light.point(rt_zig.Tuple.point(15, 15, 15), rt_zig.Color.init(1, 0.2, 1)));
     world.add_object(hex);
 
-    var camera = rt_zig.Camera.init(800, 600, std.math.pi / 3.0);
+    var camera = rt_zig.Camera.init(800, 600, 1, std.math.pi / 3.0);
     camera.transform = view_transform(
         rt_zig.Tuple.point(4, 4, 4),
         rt_zig.Tuple.point(0, 0, 0),
