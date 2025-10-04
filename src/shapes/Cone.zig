@@ -47,15 +47,15 @@ pub fn local_intersect(self: Cone, ray: Ray, object: *const Object, buf: []Inter
 }
 
 fn intersect_sides(self: Cone, ray: Ray, object: *const Object, buf: []Intersection) []Intersection {
-    const a = std.math.pow(f32, ray.direction.x, 2) - std.math.pow(f32, ray.direction.y, 2) + std.math.pow(f32, ray.direction.z, 2);
+    const a = std.math.pow(Float, ray.direction.x, 2) - std.math.pow(Float, ray.direction.y, 2) + std.math.pow(Float, ray.direction.z, 2);
     const b = 2 * ray.origin.x * ray.direction.x - 2 * ray.origin.y * ray.direction.y + 2 * ray.origin.z * ray.direction.z;
-    const c = std.math.pow(f32, ray.origin.x, 2) - std.math.pow(f32, ray.origin.y, 2) + std.math.pow(f32, ray.origin.z, 2);
+    const c = std.math.pow(Float, ray.origin.x, 2) - std.math.pow(Float, ray.origin.y, 2) + std.math.pow(Float, ray.origin.z, 2);
     if (floats.equals(a, 0) and !floats.equals(b, 0)) {
         const t = -c / (2 * b);
         buf[0] = Intersection.init(t, object);
         return buf[0..1];
     }
-    var discriminant = std.math.pow(f32, b, 2) - 4 * a * c;
+    var discriminant = std.math.pow(Float, b, 2) - 4 * a * c;
     if (-floats.EPSILON < discriminant and discriminant < 0) {
         discriminant = 0;
     }
@@ -140,8 +140,8 @@ test "Intersecting a cone's end caps" {
 }
 
 pub fn local_normal_at(self: Cone, point: Tuple) Tuple {
-    const dist = std.math.pow(f32, point.x, 2) + std.math.pow(f32, point.z, 2);
-    const radius2 = std.math.pow(f32, point.y, 2);
+    const dist = std.math.pow(Float, point.x, 2) + std.math.pow(Float, point.z, 2);
+    const radius2 = std.math.pow(Float, point.y, 2);
     if (dist < radius2 and point.y >= self.maximum - floats.EPSILON) return Tuple.vector(0, 1, 0);
     if (dist < radius2 and point.y <= self.minimum + floats.EPSILON) return Tuple.vector(0, -1, 0);
     var y = std.math.hypot(point.x, point.z);

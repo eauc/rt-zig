@@ -63,12 +63,12 @@ test init {
 
 test "The pixel size for a horizontal canvas" {
     const c = init(200, 125, 1, floats.pi / 2);
-    try std.testing.expectEqual(0.01, c.pixel_size);
+    try floats.expectEqual(0.01, c.pixel_size);
 }
 
 test "The pixel size for a vertical canvas" {
     const c = init(125, 200, 1, floats.pi / 2);
-    try std.testing.expectEqual(0.01, c.pixel_size);
+    try floats.expectEqual(0.01, c.pixel_size);
 }
 
 /// Construct a ray for a pixel

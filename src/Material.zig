@@ -137,7 +137,7 @@ test "Lighting with eye in the path of the reflection vector" {
     const light = Light.point(Tuple.point(0, 10, -10), Color.init(1, 1, 1));
     const object = Object.sphere();
     const result = m.lighting(object, Color.WHITE, &[_]Light{light}, position, eyev, normalv);
-    try Color.expectEqual(Color.init(1.63638, 1.63638, 1.63638), result);
+    try Color.expectEqual(Color.init(1.63639, 1.63639, 1.63639), result);
 }
 
 test "Lighting with the light behind the surface" {

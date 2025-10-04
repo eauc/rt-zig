@@ -49,11 +49,11 @@ pub fn local_intersect(self: Cylinder, ray: Ray, object: *const Object, buf: []I
 }
 
 fn intersect_sides(self: Cylinder, ray: Ray, object: *const Object, buf: []Intersection) []Intersection {
-    const a = std.math.pow(f32, ray.direction.x, 2) + std.math.pow(f32, ray.direction.z, 2);
+    const a = std.math.pow(Float, ray.direction.x, 2) + std.math.pow(Float, ray.direction.z, 2);
     if (floats.equals(a, 0)) return buf[0..0];
     const b = 2 * ray.origin.x * ray.direction.x + 2 * ray.origin.z * ray.direction.z;
-    const c = std.math.pow(f32, ray.origin.x, 2) + std.math.pow(f32, ray.origin.z, 2) - 1;
-    const discriminant = std.math.pow(f32, b, 2) - 4 * a * c;
+    const c = std.math.pow(Float, ray.origin.x, 2) + std.math.pow(Float, ray.origin.z, 2) - 1;
+    const discriminant = std.math.pow(Float, b, 2) - 4 * a * c;
     if (discriminant < 0) return buf[0..0];
     var t0 = (-b - std.math.sqrt(discriminant)) / (2 * a);
     var t1 = (-b + std.math.sqrt(discriminant)) / (2 * a);
@@ -92,7 +92,7 @@ fn intersect_caps(self: Cylinder, ray: Ray, object: *const Object, buf: []Inters
 fn check_cap(ray: Ray, t: Float) bool {
     const x = ray.origin.x + t * ray.direction.x;
     const z = ray.origin.z + t * ray.direction.z;
-    return std.math.pow(f32, x, 2) + std.math.pow(f32, z, 2) <= 1;
+    return std.math.pow(Float, x, 2) + std.math.pow(Float, z, 2) <= 1;
 }
 
 test "A ray misses a cylinder" {
@@ -114,7 +114,7 @@ test "A ray strikes a cylinder" {
     for ([_]struct { Tuple, Tuple, Float, Float }{
         .{ Tuple.point(1, 0, -5), Tuple.vector(0, 0, 1), 5, 5 },
         .{ Tuple.point(0, 0, -5), Tuple.vector(0, 0, 1), 4, 6 },
-        .{ Tuple.point(0.5, 0, -5), Tuple.vector(0.1, 1, 1), 4.80198, 4.99999 },
+        .{ Tuple.point(0.5, 0, -5), Tuple.vector(0.1, 1, 1), 4.80198, 5 },
     }) |example| {
         const r = Ray.init(example[0], example[1]);
         var buf = [_]Intersection{undefined} ** 10;
@@ -159,7 +159,7 @@ test "Intersecting the caps of a closed cylinder" {
 }
 
 pub fn local_normal_at(self: Cylinder, point: Tuple) Tuple {
-    const dist = std.math.pow(f32, point.x, 2) + std.math.pow(f32, point.z, 2);
+    const dist = std.math.pow(Float, point.x, 2) + std.math.pow(Float, point.z, 2);
     if (dist < 1 and point.y >= self.maximum - floats.EPSILON) return Tuple.vector(0, 1, 0);
     if (dist < 1 and point.y <= self.minimum + floats.EPSILON) return Tuple.vector(0, -1, 0);
     return Tuple.vector(point.x, 0, point.z);
